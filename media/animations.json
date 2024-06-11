@@ -1,0 +1,23 @@
+{
+  "objects": [
+    {
+      "id_name": "na_l",
+      "name": "dance",
+      "texture_path": "images/na.png",
+      "total_frame": 8,
+      "columns": 5,
+      "frame_size": [
+        204,
+        196
+      ],
+      "duration": 0.9,
+      "mask_color": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "isLoop": true
+    }
+  ]
+}
