@@ -17,7 +17,7 @@
         0,
         255
       ],
-      "isLoop": true
+      "isLoop": false
     },
     {
       "id_name": "na_2",
@@ -36,7 +36,7 @@
         0,
         255
       ],
-      "isLoop": true
+      "isLoop": false
     },
     {
       "id_name": "na_3",
