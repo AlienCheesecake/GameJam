@@ -7,39 +7,14 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Window/Keyboard.hpp>
-#include <iostream>
 #include <nlohmann/json.hpp>
-#include <stdexcept>
-
-struct CharacterAnimation : private Animator {
-  std::vector<Animation> anims_;
-  CharacterAnimation(const std::vector<Animation> &anims, const sf::Sprite &sp)
-      : Animator(sp, {}), anims_(anims) {}
-
-  void select_anim(std::string_view name) {
-    auto fnd = std::find_if(anims_.begin(), anims_.end(),
-                            [name](auto &&i) { return name == i.name; });
-    if (fnd == anims_.end())
-      throw std::invalid_argument("Animation not found");
-    switchAnimation(*fnd);
-  }
-  using Animator::restart;
-  using Animator::sp_;
-  using Animator::stop;
-  using Animator::update;
-};
-
-template <>
-void draw<CharacterAnimation &>(sf::RenderTarget &rd,
-                                CharacterAnimation &char_anim) {
-  rd.draw(char_anim.sp_);
-}
 
 int main() {
   auto &&aniM = AnimationManager::getInstance();
   aniM.loadFile("animations.json");
   CharacterAnimation character{{AnimationManager::getAnimation("na_l"),
-                                AnimationManager::getAnimation("na_2")},
+                                AnimationManager::getAnimation("na_2"),
+                                AnimationManager::getAnimation("na_3")},
                                {}};
   character.select_anim("break_dance");
 
@@ -59,6 +34,9 @@ int main() {
           break;
         case sf::Keyboard::D:
           character.select_anim("dance");
+          break;
+        case sf::Keyboard::E:
+          character.select_anim("dissapear");
           break;
         default:
           break;

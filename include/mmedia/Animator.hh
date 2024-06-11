@@ -37,3 +37,14 @@ public:
   void restart();
   void stop();
 };
+
+struct CharacterAnimation : private Animator {
+  std::vector<Animation> anims_;
+  CharacterAnimation(const std::vector<Animation> &anims, const sf::Sprite &sp);
+  void select_anim(std::string_view name);
+  using Animator::restart;
+  using Animator::sp_;
+  using Animator::stop;
+  using Animator::update;
+};
+

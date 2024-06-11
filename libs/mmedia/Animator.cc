@@ -40,7 +40,8 @@ Animation &AnimationManager::getAnimation(const std::string &id_name) {
   return am.m_Animations.at(id_name);
 }
 
-Animator::Animator(const sf::Sprite &sp, const Animation &anim) : sp_(sp), anim_(anim) {
+Animator::Animator(const sf::Sprite &sp, const Animation &anim)
+    : sp_(sp), anim_(anim) {
   if (!anim.texture_path.empty())
     sp_.setTexture(AssetManager::getTexture(anim.texture_path));
 }
@@ -70,3 +71,15 @@ void Animator::restart() {
   end_anim = false;
 }
 void Animator::stop() { end_anim = true; }
+
+CharacterAnimation::CharacterAnimation(const std::vector<Animation> &anims,
+                                       const sf::Sprite &sp)
+    : Animator(sp, {}), anims_(anims) {}
+
+void CharacterAnimation::select_anim(std::string_view name) {
+  auto fnd = std::find_if(anims_.begin(), anims_.end(),
+                          [name](auto &&i) { return name == i.name; });
+  if (fnd == anims_.end())
+    throw std::invalid_argument("Animation not found");
+  switchAnimation(*fnd);
+}

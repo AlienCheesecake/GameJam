@@ -4,7 +4,8 @@ set(LIB
 set(SRCS
 AssetManager.cc
 Animator.cc
-draw.cc)
+draw.cc
+)
 
 find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
 add_library(${LIB} ${SRCS})

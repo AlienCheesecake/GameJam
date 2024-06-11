@@ -37,7 +37,26 @@
         255
       ],
       "isLoop": true
-    }
+    },
+    {
+      "id_name": "na_3",
+      "name": "dissapear",
+      "texture_path": "images/na_dr.png",
+      "total_frame": 31,
+      "columns": 10,
+      "frame_size": [
+        200,
+        200
+      ],
+      "duration": 1,
+      "mask_color": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "isLoop": false
 
+    }
   ]
 }
