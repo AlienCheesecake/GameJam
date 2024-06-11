@@ -11,8 +11,7 @@
 int main() {
   auto &&aniM = AnimationManager::getInstance();
   aniM.loadFile("animations.json");
-  sf::Sprite sprite;
-  Animator ar{sprite, AnimationManager::getAnimation("na_l")};
+  Animator ar{{}, AnimationManager::getAnimation("na_l")};
 
   auto window = sf::RenderWindow{sf::VideoMode(204, 204), "Test Manager",
                                  sf::Style::Titlebar | sf::Style::Close};
