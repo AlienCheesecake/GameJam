@@ -31,8 +31,8 @@ class Animator {
 
 public:
   sf::Sprite sp_;
-  Animator(const sf::Sprite &sp, Animation anim = {});
-  void switchAnimation(Animation anim);
+  Animator(const sf::Sprite &sp, const Animation &anim = {});
+  void switchAnimation(const Animation &anim);
   void update(sf::Time dt);
   void restart();
   void stop();

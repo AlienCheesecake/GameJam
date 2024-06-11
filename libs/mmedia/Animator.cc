@@ -40,12 +40,12 @@ Animation &AnimationManager::getAnimation(const std::string &id_name) {
   return am.m_Animations.at(id_name);
 }
 
-Animator::Animator(const sf::Sprite &sp, Animation anim) : sp_(sp), anim_(anim) {
+Animator::Animator(const sf::Sprite &sp, const Animation &anim) : sp_(sp), anim_(anim) {
   if (!anim.texture_path.empty())
     sp_.setTexture(AssetManager::getTexture(anim.texture_path));
 }
 
-void Animator::switchAnimation(Animation anim) {
+void Animator::switchAnimation(const Animation &anim) {
   anim_ = anim;
   if (!anim.texture_path.empty())
     sp_.setTexture(AssetManager::getTexture(anim.texture_path));
