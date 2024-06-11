@@ -1,6 +1,7 @@
 set(APPLIST
   animationView
   gameJam
+  sceneDecomposition
 )
 
 foreach(APP ${APPLIST})
