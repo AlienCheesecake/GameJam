@@ -16,15 +16,39 @@
 #include <iostream>
 #include <random>
 
+struct Foo {
+  Foo() {
+    std::cout << "Foo()\n";
+  }
+  Foo(const Foo &) {
+    std::cout << "Foo(c&)\n";
+  }
+  Foo(Foo &&) {
+    std::cout << "Foo(&&)\n";
+  }
+  Foo&operator=(const Foo &) {
+    std::cout << "Foo=(c&)\n";
+    return *this;
+  }
+  Foo&operator=(Foo &&) {
+    std::cout << "Foo=(&&)\n";
+    return *this;
+  }
+  ~Foo() {
+    std::cout << "~Foo()\n";
+  }
+};
 
 struct A : scdc::Scene {
+  int x = 0;
+  Foo y;
   mmed::MusicField mf{"audio/sleep.ogg"};
   A(scdc::SceneCompose &cmp) : Scene(cmp) { std::cout << "A\n"; }
   void draw(sf::RenderTarget &) override {}
   bool update(sf::Time dt) override { return false; }
 
   bool handleEvent(const sf::Event &event) override;
-  ~A() { std::cout << "~A\n"; }
+  ~A() { std::cout << "~A:" << x << "\n"; }
 };
 
 std::default_random_engine dre{std::random_device{}()};
@@ -53,16 +77,19 @@ struct B : scdc::Scene {
 struct M : scdc::Scene {
   mmed::MusicPauseField mpf;
   sf::Sound sound;
-  M(scdc::SceneCompose &cmp)
-      : Scene(cmp),
+  int &x;
+  Foo &foo;
+  M(scdc::SceneCompose &cmp, int &k, Foo &f)
+      : Scene(cmp), x(k), foo(f),
         sound(mmed::AssetManager::getSoundBuffer("audio/quack.wav")) {
-    std::cout << "M\n";
+    x = 8;
+    std::cout << "M: " << x << "\n";
   }
   void draw(sf::RenderTarget &) override {}
   bool update(sf::Time dt) override { return true; }
   bool handleEvent(const sf::Event &event) override { 
     if (event.type == sf::Event::MouseButtonPressed) 
-      std::cout << "Quack!\n", sound.play();
+      std::cout << "Quack! " << x++ << "\n", sound.play();
     return true;
   }
   ~M() { std::cout << "~M\n"; }
@@ -85,7 +112,7 @@ bool A::handleEvent(const sf::Event &event) {
       cmp_.pending_push<A>();
       break;
     case sf::Keyboard::M:
-      cmp_.pending_push<M>();
+      cmp_.pending_push<M>(x, y);
       break;
     default:
       break;
@@ -94,6 +121,8 @@ bool A::handleEvent(const sf::Event &event) {
 }
 
 int main() try {
+  int k = 0;
+  std::cout << k << "\n";
   auto &&aniM = mmed::AnimationManager::getInstance();
   aniM.loadFile("animations.json");
   auto scmp = scdc::SceneCompose{};

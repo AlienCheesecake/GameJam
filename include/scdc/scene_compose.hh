@@ -1,10 +1,12 @@
 #pragma once
 #include "fire_once.hh"
+#include "mmedia/draw.hh"
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <queue>
+#include <iostream>
+#include <tuple>
 #include <vector>
-#include "mmedia/draw.hh"
 
 namespace scdc {
 struct SceneCompose;
@@ -29,9 +31,14 @@ class SceneCompose {
   using task_t = fire_once<int(std::vector<Scene::ptr> &)>;
   std::vector<Scene::ptr> scenes_;
 
-  template <scene_child T> task_t push_task() {
-    return [this](std::vector<Scene::ptr> &sk) {
-      sk.push_back(create_scene<T>());
+  template <scene_child T, typename... Args> task_t push_task(Args &&...args) {
+    return [this, args = std::forward_as_tuple(args...)](
+               std::vector<Scene::ptr> &sk) mutable {
+      sk.push_back(std::apply(
+          [this](auto &&...args) {
+            return create_scene<T>(std::forward<Args>(args)...);
+          },
+          args));
       return 0;
     };
   }
@@ -40,16 +47,18 @@ class SceneCompose {
   task_t clear_task();
   std::queue<task_t> pending_task;
 
-  template <scene_child T> Scene::ptr create_scene() {
-    return Scene::ptr{new T(*this)};
+  template <scene_child T, typename... Args>
+  Scene::ptr create_scene(Args &&...args) {
+    return Scene::ptr{new T(*this, std::forward<Args>(args)...)};
   }
 
 public:
   bool empty() const noexcept;
   void consume_tasks();
 
-  template <scene_child T> inline void pending_push() {
-    pending_task.push(push_task<T>());
+  template <scene_child T, typename... Args>
+  inline void pending_push(Args &&...args) {
+    pending_task.push(push_task<T>(std::forward<Args>(args)...));
   }
   void pending_pop();
   void pending_clear();
@@ -60,5 +69,6 @@ public:
 };
 } // namespace scdc
 
-template<> void draw<scdc::Scene&>(sf::RenderTarget &, scdc::Scene &);
-template<> void draw<scdc::SceneCompose&>(sf::RenderTarget &, scdc::SceneCompose &);
+template <> void draw<scdc::Scene &>(sf::RenderTarget &, scdc::Scene &);
+template <>
+void draw<scdc::SceneCompose &>(sf::RenderTarget &, scdc::SceneCompose &);
