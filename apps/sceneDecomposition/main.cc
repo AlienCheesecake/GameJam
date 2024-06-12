@@ -1,14 +1,19 @@
+#include "mmedia/Animator.hh"
+#include "mmedia/draw.hh"
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Time.hpp>
 #include <SFML/Window/Context.hpp>
+#include <SFML/Window/Event.hpp>
+#include <SFML/Window/Keyboard.hpp>
 #include <concepts>
 #include <iostream>
 #include <memory>
 #include <queue>
 #include <type_traits>
+#include <random>
 
 template <typename T> class fire_once;
 
@@ -66,7 +71,6 @@ template <typename T>
 concept scene_child = std::derived_from<T, Scene>;
 
 struct SceneCompose {
-  sf::RenderWindow win_;
   std::vector<Scene::ptr> scenes_;
   using task_t = fire_once<int(std::vector<Scene::ptr> &)>;
   template <scene_child T> task_t push_task() {
@@ -96,6 +100,14 @@ struct SceneCompose {
     }
   }
 
+  template <scene_child T> inline void pending_push() {
+    pending_task.push(push_task<T>());
+  }
+
+  inline void pending_pop() { pending_task.push(pop_task()); }
+
+  inline void pending_clear() { pending_task.push(clear_task()); }
+
   template <scene_child T> Scene::ptr create_scene() {
     return Scene::ptr{new T(*this)};
   }
@@ -108,8 +120,8 @@ struct SceneCompose {
   }
 
   void draw(sf::RenderTarget &rnd) {
-    for (auto i = scenes_.rbegin(), ei = scenes_.rend(); i != ei; ++i)
-      (*i)->draw(rnd);
+    for (auto &&i : scenes_)
+      i->draw(rnd);
   }
 
   void update(sf::Time dt) {
@@ -120,32 +132,87 @@ struct SceneCompose {
   }
 };
 
-template <> void draw<Scene &>(sf::RenderTarget &rt, Scene &sc) { sc.draw(rt); }
-
 struct A : Scene {
   A(SceneCompose &cmp) : Scene(cmp) { std::cout << "A\n"; }
   void draw(sf::RenderTarget &) override {}
   bool update(sf::Time dt) override { return false; }
-  bool handleEvent(const sf::Event &event) override { return false; }
-  ~A() {std::cout << "~A\n";}
+
+  bool handleEvent(const sf::Event &event) override;
+  ~A() { std::cout << "~A\n"; }
 };
+
+std::default_random_engine dre{std::random_device{}()};
+std::uniform_real_distribution<float> uid{0, 200};
 
 struct B : Scene {
-  B(SceneCompose &cmp) : Scene(cmp) { std::cout << "B\n"; }
-  void draw(sf::RenderTarget &) override {}
-  bool update(sf::Time dt) override { return false; }
-  bool handleEvent(const sf::Event &event) override { return false; }
-  ~B() {std::cout << "~B\n";}
+  CharacterAnimation ca_;
+  sf::CircleShape shape{50};
+  B(SceneCompose &cmp)
+      : Scene(cmp), ca_({AnimationManager::getAnimation("na_l")}, {}) {
+    ca_.sp_.setPosition({uid(dre), uid(dre)});
+    ca_.select_anim("dance");
+    ca_.restart();
+    std::cout << "B\n";
+  }
+  void draw(sf::RenderTarget &rt) override {
+    // ::draw(rt, shape);
+    ::draw(rt, ca_);
+    // rt.draw(ca_.sp_);
+  }
+  bool update(sf::Time dt) override { 
+    ca_.update(dt);
+    return false;
+  }
+  bool handleEvent(const sf::Event &event) override { return true; }
+  ~B() { std::cout << "~B\n"; }
 };
 
-int main() {
-  SceneCompose cmp;
-  cmp.pending_task.push(cmp.push_task<A>());
-  cmp.pending_task.push(cmp.push_task<B>());
-  cmp.pending_task.push(cmp.pop_task());
-  cmp.pending_task.push(cmp.push_task<B>());
-  cmp.pending_task.push(cmp.clear_task());
-  cmp.pending_task.push(cmp.push_task<A>());
-  cmp.update({});
+bool A::handleEvent(const sf::Event &event) {
+  if (event.type == sf::Event::KeyPressed)
+    switch (event.key.code) {
+    case sf::Keyboard::A:
+      cmp_.pending_push<A>();
+      break;
+    case sf::Keyboard::B:
+      cmp_.pending_push<B>();
+      break;
+    case sf::Keyboard::P:
+      cmp_.pending_pop();
+    default:
+      break;
+    }
+  return false;
+}
+
+int main() try {
+  auto &&aniM = AnimationManager::getInstance();
+  aniM.loadFile("animations.json");
+  auto scmp = SceneCompose{};
+  scmp.pending_push<A>();
+
+  auto window = sf::RenderWindow{sf::VideoMode(400, 400), "Test Manager",
+                                 sf::Style::Titlebar | sf::Style::Close};
+  sf::Clock clock;
+
+  while (window.isOpen()) {
+    auto dt = clock.restart();
+
+    sf::Event event;
+    while (window.pollEvent(event)) {
+      scmp.handleEvent(event);
+      if (event.type == sf::Event::Closed)
+        window.close();
+    }
+    scmp.update(dt);
+    if (scmp.scenes_.empty())
+      window.close();
+    window.clear();
+    scmp.draw(window);
+    window.display();
+  }
   return 0;
+} catch (std::exception &err) {
+  std::cerr << "Catched exception: " << err.what() << std::endl; 
+} catch (...) {
+  std::cerr << "Catched unknown exception" << std::endl;
 }
