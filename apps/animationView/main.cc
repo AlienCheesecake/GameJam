@@ -10,11 +10,11 @@
 #include <nlohmann/json.hpp>
 
 int main() {
-  auto &&aniM = AnimationManager::getInstance();
+  auto &&aniM = mmed::AnimationManager::getInstance();
   aniM.loadFile("animations.json");
-  CharacterAnimation character{{AnimationManager::getAnimation("na_l"),
-                                AnimationManager::getAnimation("na_2"),
-                                AnimationManager::getAnimation("na_3")},
+  mmed::CharacterAnimation character{{mmed::AnimationManager::getAnimation("na_l"),
+                                mmed::AnimationManager::getAnimation("na_2"),
+                                mmed::AnimationManager::getAnimation("na_3")},
                                {}};
   character.select_anim("break_dance");
 

@@ -2,6 +2,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 
+namespace mmed{
 class AssetManager final {
   std::map<std::string, sf::Texture> m_Textures;
   std::map<std::string, sf::SoundBuffer> m_SoundBuffers;
@@ -21,3 +22,4 @@ public:
   static sf::SoundBuffer &getSoundBuffer(std::string const &filename);
   static sf::Font &getFont(std::string const &filename);
 };
+}

@@ -4,7 +4,7 @@
 #include <queue>
 #include <vector>
 
-
+namespace scdc {
 struct SceneCompose;
 
 struct Scene {
@@ -29,18 +29,19 @@ class SceneCompose {
 
   template <scene_child T> task_t push_task() {
     return [this](std::vector<Scene::ptr> &sk) {
-    sk.push_back(create_scene<T>());
+      sk.push_back(create_scene<T>());
       return 0;
     };
   }
   task_t pop_task();
-  
+
   task_t clear_task();
   std::queue<task_t> pending_task;
 
   template <scene_child T> Scene::ptr create_scene() {
     return Scene::ptr{new T(*this)};
   }
+
 public:
   bool empty() const noexcept;
   void consume_tasks();
@@ -55,3 +56,4 @@ public:
   void draw(sf::RenderTarget &rnd);
   void update(sf::Time dt);
 };
+} // namespace scdc

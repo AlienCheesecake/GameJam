@@ -4,6 +4,8 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
+using namespace mmed;
+
 sf::IntRect Animation::get_box(uint64_t cur_frame) const {
   if (total_frame <= cur_frame)
     throw std::out_of_range("total_frame <= cur_frame");

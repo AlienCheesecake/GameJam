@@ -6,8 +6,8 @@ template <typename T> void draw(sf::RenderTarget &trgt, T &&drawable) {
   trgt.draw(std::forward<T>(drawable));
 }
 
-template <> void draw<Animator &>(sf::RenderTarget &, Animator &);
+template <> void draw<mmed::Animator &>(sf::RenderTarget &, mmed::Animator &);
 
 template <>
-void draw<CharacterAnimation &>(sf::RenderTarget &rd,
-                                CharacterAnimation &char_anim);
+void draw<mmed::CharacterAnimation &>(sf::RenderTarget &rd,
+                                mmed::CharacterAnimation &char_anim);

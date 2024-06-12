@@ -1,5 +1,7 @@
 #include "AssetManager.hh"
 
+using namespace mmed;
+
 AssetManager &AssetManager::getInstance() {
   static AssetManager mng;
   return mng;

@@ -12,8 +12,8 @@
 #include <random>
 #include "scdc/scene_compose.hh"
 
-struct A : Scene {
-  A(SceneCompose &cmp) : Scene(cmp) { std::cout << "A\n"; }
+struct A : scdc::Scene {
+  A(scdc::SceneCompose &cmp) : Scene(cmp) { std::cout << "A\n"; }
   void draw(sf::RenderTarget &) override {}
   bool update(sf::Time dt) override { return false; }
 
@@ -24,11 +24,11 @@ struct A : Scene {
 std::default_random_engine dre{std::random_device{}()};
 std::uniform_real_distribution<float> uid{0, 200};
 
-struct B : Scene {
-  CharacterAnimation ca_;
+struct B : scdc::Scene {
+  mmed::CharacterAnimation ca_;
   sf::CircleShape shape{50};
-  B(SceneCompose &cmp)
-      : Scene(cmp), ca_({AnimationManager::getAnimation("na_l")}, {}) {
+  B(scdc::SceneCompose &cmp)
+      : Scene(cmp), ca_({mmed::AnimationManager::getAnimation("na_l")}, {}) {
     ca_.sp_.setPosition({uid(dre), uid(dre)});
     ca_.select_anim("dance");
     ca_.restart();
@@ -69,9 +69,9 @@ bool A::handleEvent(const sf::Event &event) {
 }
 
 int main() try {
-  auto &&aniM = AnimationManager::getInstance();
+  auto &&aniM = mmed::AnimationManager::getInstance();
   aniM.loadFile("animations.json");
-  auto scmp = SceneCompose{};
+  auto scmp = scdc::SceneCompose{};
   scmp.pending_push<A>();
 
   auto window = sf::RenderWindow{sf::VideoMode(400, 400), "Test Manager",

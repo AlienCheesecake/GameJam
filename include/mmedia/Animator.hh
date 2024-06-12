@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 
+namespace mmed{
 struct Animation {
   std::string name, texture_path;
   uint64_t total_frame, columns;
@@ -47,4 +48,4 @@ struct CharacterAnimation : private Animator {
   using Animator::stop;
   using Animator::update;
 };
-
+}

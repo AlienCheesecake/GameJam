@@ -1,12 +1,12 @@
 #include "draw.hh"
 #include "Animator.hh"
 
-template <> void draw<Animator &>(sf::RenderTarget &trgt, Animator &anim) {
+template <> void draw<mmed::Animator &>(sf::RenderTarget &trgt, mmed::Animator &anim) {
   draw(trgt, anim.sp_);
 }
 
 template <>
-void draw<CharacterAnimation &>(sf::RenderTarget &rd,
-                                CharacterAnimation &char_anim) {
+void draw<mmed::CharacterAnimation &>(sf::RenderTarget &rd,
+                                mmed::CharacterAnimation &char_anim) {
   rd.draw(char_anim.sp_);
 }

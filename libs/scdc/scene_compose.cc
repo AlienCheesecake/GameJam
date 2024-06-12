@@ -1,5 +1,7 @@
 #include "scene_compose.hh"
 
+using namespace scdc;
+
 SceneCompose::task_t SceneCompose::pop_task() {
   return [](auto &&sk) {
     sk.pop_back();
