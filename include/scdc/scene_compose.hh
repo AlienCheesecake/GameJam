@@ -1,8 +1,10 @@
 #pragma once
 #include "fire_once.hh"
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
 #include <queue>
 #include <vector>
+#include "mmedia/draw.hh"
 
 namespace scdc {
 struct SceneCompose;
@@ -57,3 +59,6 @@ public:
   void update(sf::Time dt);
 };
 } // namespace scdc
+
+template<> void draw<scdc::Scene&>(sf::RenderTarget &, scdc::Scene &);
+template<> void draw<scdc::SceneCompose&>(sf::RenderTarget &, scdc::SceneCompose &);

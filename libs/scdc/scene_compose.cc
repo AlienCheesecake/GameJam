@@ -46,6 +46,12 @@ void SceneCompose::update(sf::Time dt) {
   consume_tasks();
 }
 
-bool SceneCompose::empty() const noexcept {
-  return scenes_.empty();
+bool SceneCompose::empty() const noexcept { return scenes_.empty(); }
+
+template <> void draw<scdc::Scene &>(sf::RenderTarget &rt, scdc::Scene &sc) {
+  sc.draw(rt);
+}
+template <>
+void draw<scdc::SceneCompose &>(sf::RenderTarget &rt, scdc::SceneCompose &sc) {
+  sc.draw(rt);
 }

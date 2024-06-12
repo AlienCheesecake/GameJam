@@ -1,5 +1,10 @@
 #include "mmedia/Animator.hh"
+#include "mmedia/AssetManager.hh"
+#include "mmedia/MusicPlayer.hh"
 #include "mmedia/draw.hh"
+#include "scdc/scene_compose.hh"
+#include <SFML/Audio.hpp>
+#include <SFML/Audio/Sound.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
@@ -10,9 +15,10 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <iostream>
 #include <random>
-#include "scdc/scene_compose.hh"
+
 
 struct A : scdc::Scene {
+  mmed::MusicField mf{"audio/sleep.ogg"};
   A(scdc::SceneCompose &cmp) : Scene(cmp) { std::cout << "A\n"; }
   void draw(sf::RenderTarget &) override {}
   bool update(sf::Time dt) override { return false; }
@@ -27,6 +33,7 @@ std::uniform_real_distribution<float> uid{0, 200};
 struct B : scdc::Scene {
   mmed::CharacterAnimation ca_;
   sf::CircleShape shape{50};
+  mmed::MusicField mf{"audio/goofy.ogg"};
   B(scdc::SceneCompose &cmp)
       : Scene(cmp), ca_({mmed::AnimationManager::getAnimation("na_l")}, {}) {
     ca_.sp_.setPosition({uid(dre), uid(dre)});
@@ -34,17 +41,31 @@ struct B : scdc::Scene {
     ca_.restart();
     std::cout << "B\n";
   }
-  void draw(sf::RenderTarget &rt) override {
-    // ::draw(rt, shape);
-    ::draw(rt, ca_);
-    // rt.draw(ca_.sp_);
-  }
-  bool update(sf::Time dt) override { 
+  void draw(sf::RenderTarget &rt) override { ::draw(rt, ca_); }
+  bool update(sf::Time dt) override {
     ca_.update(dt);
     return false;
   }
   bool handleEvent(const sf::Event &event) override { return true; }
   ~B() { std::cout << "~B\n"; }
+};
+
+struct M : scdc::Scene {
+  mmed::MusicPauseField mpf;
+  sf::Sound sound;
+  M(scdc::SceneCompose &cmp)
+      : Scene(cmp),
+        sound(mmed::AssetManager::getSoundBuffer("audio/quack.wav")) {
+    std::cout << "M\n";
+  }
+  void draw(sf::RenderTarget &) override {}
+  bool update(sf::Time dt) override { return true; }
+  bool handleEvent(const sf::Event &event) override { 
+    if (event.type == sf::Event::MouseButtonPressed) 
+      std::cout << "Quack!\n", sound.play();
+    return true;
+  }
+  ~M() { std::cout << "~M\n"; }
 };
 
 bool A::handleEvent(const sf::Event &event) {
@@ -62,6 +83,10 @@ bool A::handleEvent(const sf::Event &event) {
     case sf::Keyboard::C:
       cmp_.pending_clear();
       cmp_.pending_push<A>();
+      break;
+    case sf::Keyboard::M:
+      cmp_.pending_push<M>();
+      break;
     default:
       break;
     }
@@ -91,12 +116,12 @@ int main() try {
     if (scmp.empty())
       window.close();
     window.clear();
-    scmp.draw(window);
+    draw(window, scmp);
     window.display();
   }
   return 0;
 } catch (std::exception &err) {
-  std::cerr << "Catched exception: " << err.what() << std::endl; 
+  std::cerr << "Catched exception: " << err.what() << std::endl;
 } catch (...) {
   std::cerr << "Catched unknown exception" << std::endl;
 }
