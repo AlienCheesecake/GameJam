@@ -18,14 +18,14 @@ float menu_Y;
 int menu_step;
 //int menu_selected;
 
-CharacterAnimation button_start{{AnimationManager::getAnimation("na_l"), AnimationManager::getAnimation("na_2"),
-                                  AnimationManager::getAnimation("na_3")},
+mmed::CharacterAnimation button_start{{mmed::AnimationManager::getAnimation("na_l"), mmed::AnimationManager::getAnimation("na_2"),
+                                  mmed::AnimationManager::getAnimation("na_3")},
                                   {}};
-CharacterAnimation button_level{{AnimationManager::getAnimation("na_l"), AnimationManager::getAnimation("na_2"),
-                                  AnimationManager::getAnimation("na_3")},
+mmed::CharacterAnimation button_level{{mmed::AnimationManager::getAnimation("na_l"), mmed::AnimationManager::getAnimation("na_2"),
+                                  mmed::AnimationManager::getAnimation("na_3")},
                                   {}};
-CharacterAnimation button_exit{{AnimationManager::getAnimation("na_l"), AnimationManager::getAnimation("na_2"),
-                                  AnimationManager::getAnimation("na_3")},
+mmed::CharacterAnimation button_exit{{mmed::AnimationManager::getAnimation("na_l"), mmed::AnimationManager::getAnimation("na_2"),
+                                  mmed::AnimationManager::getAnimation("na_3")},
                                   {}};
 public:
 Menu(float x, float y, int step)
@@ -41,10 +41,10 @@ Menu(float x, float y, int step)
 
 int main() 
 {
-    auto &&aniM = AnimationManager::getInstance();
+    auto &&aniM = mmed::AnimationManager::getInstance();
     aniM.loadFile("animations.json");
-    CharacterAnimation character{{AnimationManager::getAnimation("na_l"), AnimationManager::getAnimation("na_2"),
-                                  AnimationManager::getAnimation("na_3")},
+    mmed::CharacterAnimation character{{mmed::AnimationManager::getAnimation("na_l"), mmed::AnimationManager::getAnimation("na_2"),
+                                  mmed::AnimationManager::getAnimation("na_3")},
                                   {}};
     
 
