@@ -8,129 +8,9 @@
 #include <SFML/Window/Context.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
-#include <concepts>
 #include <iostream>
-#include <memory>
-#include <queue>
-#include <type_traits>
 #include <random>
-
-template <typename T> class fire_once;
-
-template <typename R, typename... Args> class fire_once<R(Args...)> {
-  std::unique_ptr<void, void (*)(void *)> ptr{nullptr, +[](void *) {}};
-  R (*invoke)(void *, Args...) = nullptr;
-
-public:
-  fire_once() = default;
-  fire_once(fire_once &&) = default;
-  fire_once &operator=(fire_once &&) = default;
-
-  template <typename F> fire_once(F &&f) {
-    auto pf = std::make_unique<F>(std::move(f));
-    invoke = +[](void *pf, Args &&...args) -> R {
-      F *f = reinterpret_cast<F *>(pf);
-      return (*f)(std::forward<Args>(args)...);
-    };
-    ptr = {pf.release(), [](void *pf) {
-             F *f = reinterpret_cast<F *>(pf);
-             delete f;
-           }};
-  }
-
-  R operator()(Args &&...args) && {
-    R ret = invoke(ptr.get(), std::forward<Args>(args)...);
-    clear();
-    return std::move(ret);
-  }
-
-  void clear() {
-    invoke = nullptr;
-    ptr.reset();
-  }
-
-  explicit operator bool() const { return static_cast<bool>(ptr); }
-};
-
-struct SceneCompose;
-
-struct Scene {
-  using ptr = std::unique_ptr<Scene>;
-
-  SceneCompose &cmp_;
-  Scene(SceneCompose &cmp) : cmp_(cmp) {}
-
-  virtual void draw(sf::RenderTarget &) = 0;
-  virtual bool update(sf::Time dt) = 0;
-  virtual bool handleEvent(const sf::Event &event) = 0;
-
-  virtual ~Scene() = default;
-};
-
-template <typename T>
-concept scene_child = std::derived_from<T, Scene>;
-
-struct SceneCompose {
-  std::vector<Scene::ptr> scenes_;
-  using task_t = fire_once<int(std::vector<Scene::ptr> &)>;
-  template <scene_child T> task_t push_task() {
-    return [this](std::vector<Scene::ptr> &sk) {
-      sk.push_back(create_scene<T>());
-      return 0;
-    };
-  }
-  task_t pop_task() {
-    return [](auto &&sk) {
-      sk.pop_back();
-      return 0;
-    };
-  }
-  task_t clear_task() {
-    return [](std::vector<Scene::ptr> &sk) {
-      sk.clear();
-      return 0;
-    };
-  }
-  std::queue<task_t> pending_task;
-
-  void consume_tasks() {
-    while (!pending_task.empty()) {
-      std::move(pending_task.front())(scenes_);
-      pending_task.pop();
-    }
-  }
-
-  template <scene_child T> inline void pending_push() {
-    pending_task.push(push_task<T>());
-  }
-
-  inline void pending_pop() { pending_task.push(pop_task()); }
-
-  inline void pending_clear() { pending_task.push(clear_task()); }
-
-  template <scene_child T> Scene::ptr create_scene() {
-    return Scene::ptr{new T(*this)};
-  }
-
-  void handleEvent(sf::Event event) {
-    for (auto i = scenes_.rbegin(), ei = scenes_.rend(); i != ei; ++i)
-      if (!(*i)->handleEvent(event))
-        break;
-    consume_tasks();
-  }
-
-  void draw(sf::RenderTarget &rnd) {
-    for (auto &&i : scenes_)
-      i->draw(rnd);
-  }
-
-  void update(sf::Time dt) {
-    for (auto i = scenes_.rbegin(), ei = scenes_.rend(); i != ei; ++i)
-      if (!(*i)->update(dt))
-        break;
-    consume_tasks();
-  }
-};
+#include "scdc/scene_compose.hh"
 
 struct A : Scene {
   A(SceneCompose &cmp) : Scene(cmp) { std::cout << "A\n"; }
@@ -178,6 +58,10 @@ bool A::handleEvent(const sf::Event &event) {
       break;
     case sf::Keyboard::P:
       cmp_.pending_pop();
+      break;
+    case sf::Keyboard::C:
+      cmp_.pending_clear();
+      cmp_.pending_push<A>();
     default:
       break;
     }
@@ -204,7 +88,7 @@ int main() try {
         window.close();
     }
     scmp.update(dt);
-    if (scmp.scenes_.empty())
+    if (scmp.empty())
       window.close();
     window.clear();
     scmp.draw(window);

@@ -1,9 +1,27 @@
 [
 {
   "directory": "C:/Users/NaumiK/Documents/VsCodiumProjects/GameJam/build",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -IC:/Users/NaumiK/Documents/VsCodiumProjects/GameJam/include/mmedia -isystem C:/vcpkg/vcpkg/installed/x64-windows/include -O0 -std=gnu++20 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview @libs\\mmedia\\CMakeFiles\\mmedia.dir\\AssetManager.cc.obj.modmap -o libs\\mmedia\\CMakeFiles\\mmedia.dir\\AssetManager.cc.obj -c C:\\Users\\NaumiK\\Documents\\VsCodiumProjects\\GameJam\\libs\\mmedia\\AssetManager.cc",
+  "file": "C:\\Users\\NaumiK\\Documents\\VsCodiumProjects\\GameJam\\libs\\mmedia\\AssetManager.cc",
+  "output": "libs\\mmedia\\CMakeFiles\\mmedia.dir\\AssetManager.cc.obj"
+},
+{
+  "directory": "C:/Users/NaumiK/Documents/VsCodiumProjects/GameJam/build",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -IC:/Users/NaumiK/Documents/VsCodiumProjects/GameJam/include/mmedia -isystem C:/vcpkg/vcpkg/installed/x64-windows/include -O0 -std=gnu++20 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview @libs\\mmedia\\CMakeFiles\\mmedia.dir\\Animator.cc.obj.modmap -o libs\\mmedia\\CMakeFiles\\mmedia.dir\\Animator.cc.obj -c C:\\Users\\NaumiK\\Documents\\VsCodiumProjects\\GameJam\\libs\\mmedia\\Animator.cc",
+  "file": "C:\\Users\\NaumiK\\Documents\\VsCodiumProjects\\GameJam\\libs\\mmedia\\Animator.cc",
+  "output": "libs\\mmedia\\CMakeFiles\\mmedia.dir\\Animator.cc.obj"
+},
+{
+  "directory": "C:/Users/NaumiK/Documents/VsCodiumProjects/GameJam/build",
   "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -IC:/Users/NaumiK/Documents/VsCodiumProjects/GameJam/include/mmedia -isystem C:/vcpkg/vcpkg/installed/x64-windows/include -O0 -std=gnu++20 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview @libs\\mmedia\\CMakeFiles\\mmedia.dir\\draw.cc.obj.modmap -o libs\\mmedia\\CMakeFiles\\mmedia.dir\\draw.cc.obj -c C:\\Users\\NaumiK\\Documents\\VsCodiumProjects\\GameJam\\libs\\mmedia\\draw.cc",
   "file": "C:\\Users\\NaumiK\\Documents\\VsCodiumProjects\\GameJam\\libs\\mmedia\\draw.cc",
   "output": "libs\\mmedia\\CMakeFiles\\mmedia.dir\\draw.cc.obj"
+},
+{
+  "directory": "C:/Users/NaumiK/Documents/VsCodiumProjects/GameJam/build",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -IC:/Users/NaumiK/Documents/VsCodiumProjects/GameJam/include/scdc -isystem C:/vcpkg/vcpkg/installed/x64-windows/include -O0 -std=gnu++20 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview @libs\\scdc\\CMakeFiles\\scdc.dir\\scene_compose.cc.obj.modmap -o libs\\scdc\\CMakeFiles\\scdc.dir\\scene_compose.cc.obj -c C:\\Users\\NaumiK\\Documents\\VsCodiumProjects\\GameJam\\libs\\scdc\\scene_compose.cc",
+  "file": "C:\\Users\\NaumiK\\Documents\\VsCodiumProjects\\GameJam\\libs\\scdc\\scene_compose.cc",
+  "output": "libs\\scdc\\CMakeFiles\\scdc.dir\\scene_compose.cc.obj"
 },
 {
   "directory": "C:/Users/NaumiK/Documents/VsCodiumProjects/GameJam/build",
@@ -16,5 +34,11 @@
   "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -IC:/Users/NaumiK/Documents/VsCodiumProjects/GameJam/include -IC:/Users/NaumiK/Documents/VsCodiumProjects/GameJam/include/gameJam -isystem C:/vcpkg/vcpkg/installed/x64-windows/include -O0 -std=gnu++20 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview @apps\\gameJam\\CMakeFiles\\gameJam.dir\\main.cc.obj.modmap -o apps\\gameJam\\CMakeFiles\\gameJam.dir\\main.cc.obj -c C:\\Users\\NaumiK\\Documents\\VsCodiumProjects\\GameJam\\apps\\gameJam\\main.cc",
   "file": "C:\\Users\\NaumiK\\Documents\\VsCodiumProjects\\GameJam\\apps\\gameJam\\main.cc",
   "output": "apps\\gameJam\\CMakeFiles\\gameJam.dir\\main.cc.obj"
+},
+{
+  "directory": "C:/Users/NaumiK/Documents/VsCodiumProjects/GameJam/build",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -IC:/Users/NaumiK/Documents/VsCodiumProjects/GameJam/include -IC:/Users/NaumiK/Documents/VsCodiumProjects/GameJam/include/sceneDecomposition -isystem C:/vcpkg/vcpkg/installed/x64-windows/include -O0 -std=gnu++20 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview @apps\\sceneDecomposition\\CMakeFiles\\sceneDecomposition.dir\\main.cc.obj.modmap -o apps\\sceneDecomposition\\CMakeFiles\\sceneDecomposition.dir\\main.cc.obj -c C:\\Users\\NaumiK\\Documents\\VsCodiumProjects\\GameJam\\apps\\sceneDecomposition\\main.cc",
+  "file": "C:\\Users\\NaumiK\\Documents\\VsCodiumProjects\\GameJam\\apps\\sceneDecomposition\\main.cc",
+  "output": "apps\\sceneDecomposition\\CMakeFiles\\sceneDecomposition.dir\\main.cc.obj"
 }
 ]
