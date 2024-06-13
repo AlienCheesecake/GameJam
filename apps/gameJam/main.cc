@@ -17,7 +17,7 @@ using namespace mmed;
 
 struct Mehehenu:Scene
 {
-  sf::RenderWindow &win;
+  sf::RenderWindow &window;
 
   sf::Texture background1 = AssetManager::getTexture("images/fon1.png");
   sf::Texture background2 = AssetManager::getTexture("images/fon2.png");
@@ -34,7 +34,7 @@ struct Mehehenu:Scene
   sf::Texture exit_final = AssetManager::getTexture("images/exit_final.png");
 
   MusicField mf{"audio/goofy.ogg"};
-  Mehehenu(SceneCompose &cmp, sf::RenderWindow &win) : Scene(cmp), win(win)
+  Mehehenu(SceneCompose &cmp, sf::RenderWindow &win) : Scene(cmp), window(win)
   {
     button_start.setPosition(750, 200);
     button_exit.setPosition(790, 400);
@@ -42,7 +42,7 @@ struct Mehehenu:Scene
     button_start.setTexture(start);
     button_exit.setTexture(exit);
   }
-  void draw(sf::RenderTarget &window) override 
+  void draw() override 
   { 
     ::draw(window, bg); 
     ::draw(window, button_start);
@@ -55,8 +55,8 @@ struct Mehehenu:Scene
   }
   bool handleEvent(const sf::Event &event) override 
   { 
-    sf::Vector2i pos = sf::Mouse::getPosition(win);
-    sf::Vector2f mousepos = win.mapPixelToCoords(pos);
+    sf::Vector2i pos = sf::Mouse::getPosition(window);
+    sf::Vector2f mousepos = window.mapPixelToCoords(pos);
     if(button_start.getGlobalBounds().contains(mousepos.x, mousepos.y))
     {
       button_start.setTexture(start_select);
@@ -85,7 +85,7 @@ struct Mehehenu:Scene
 
 struct Menu:Scene
 {
-  sf::RenderWindow &win;
+  sf::RenderWindow &window;
 
   sf::Texture background1 = AssetManager::getTexture("images/fon1.png");
   sf::Texture background2 = AssetManager::getTexture("images/fon2.png");
@@ -102,7 +102,7 @@ struct Menu:Scene
   sf::Texture exit_final = AssetManager::getTexture("images/exit_final.png");
 
   MusicField mf{"audio/sleep.ogg"};
-  Menu(SceneCompose &cmp, sf::RenderWindow &win) : Scene(cmp), win(win)
+  Menu(SceneCompose &cmp, sf::RenderWindow &win) : Scene(cmp), window(win)
   {
     button_start.setPosition(750, 200);
     button_exit.setPosition(790, 400);
@@ -110,7 +110,7 @@ struct Menu:Scene
     button_start.setTexture(start);
     button_exit.setTexture(exit);
   }
-  void draw(sf::RenderTarget &window) override 
+  void draw() override 
   { 
     ::draw(window, bg); 
     ::draw(window, button_start);
@@ -123,8 +123,8 @@ struct Menu:Scene
   }
   bool handleEvent(const sf::Event &event) override 
   { 
-    sf::Vector2i pos = sf::Mouse::getPosition(win);
-    sf::Vector2f mousepos = win.mapPixelToCoords(pos);
+    sf::Vector2i pos = sf::Mouse::getPosition(window);
+    sf::Vector2f mousepos = window.mapPixelToCoords(pos);
     if(button_start.getGlobalBounds().contains(mousepos.x, mousepos.y))
     {
       button_start.setTexture(start_select);
@@ -133,7 +133,7 @@ struct Menu:Scene
         bg.setTexture(background2);
         button_start.setTexture(start_final);
         cmp_.pending_pop();
-        cmp_.pending_push<Mehehenu>(win);
+        cmp_.pending_push<Mehehenu>(window);
       }
     }
     else if(button_exit.getGlobalBounds().contains(mousepos.x, mousepos.y))
@@ -175,7 +175,7 @@ int main() {
     if(scmp.empty())
     {window.close();}
     window.clear();
-    scmp.draw(window);
+    scmp.draw();
     window.display();
   }
   return 0;
