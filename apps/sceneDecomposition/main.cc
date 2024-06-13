@@ -11,15 +11,23 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Time.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Context.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <SFML/Window/Mouse.hpp>
+#include <concepts>
 #include <future>
 #include <iostream>
 #include <latch>
 #include <mutex>
 #include <random>
 #include <thread>
+
+template <typename T>
+concept mouse_handler = requires(T t) {
+  { t() } -> std::same_as<sf::Vector2i>;
+};
 
 struct Foo {
   Foo() { std::cout << "Foo()\n"; }
@@ -36,12 +44,17 @@ struct Foo {
   ~Foo() { std::cout << "~Foo()\n"; }
 };
 
-struct A : scdc::Scene {
+template <mouse_handler T> struct A : scdc::Scene {
   int x = 0;
   Foo y;
+  sf::RenderTarget &rt_;
+  T mh_;
   // mmed::MusicField mf{"audio/sleep.ogg"};
-  A(scdc::SceneCompose &cmp) : Scene(cmp) { std::cout << "A\n"; }
-  void draw(sf::RenderTarget &) override {}
+  A(scdc::SceneCompose &cmp, sf::RenderTarget &rt, T mh)
+      : Scene(cmp), rt_(rt), mh_(mh) {
+    std::cout << "A\n";
+  }
+  void draw() override {}
   bool update(sf::Time dt) override { return false; }
 
   bool handleEvent(const sf::Event &event) override;
@@ -51,18 +64,21 @@ struct A : scdc::Scene {
 std::default_random_engine dre{std::random_device{}()};
 std::uniform_real_distribution<float> uid{0, 200};
 
-struct B : scdc::Scene {
+template <mouse_handler T> struct B : scdc::Scene {
   mmed::CharacterAnimation ca_;
   sf::CircleShape shape{50};
   mmed::MusicField mf{"audio/goofy.ogg"};
-  B(scdc::SceneCompose &cmp)
-      : Scene(cmp), ca_({mmed::AnimationManager::getAnimation("na_l")}, {}) {
+  sf::RenderTarget &rt_;
+  T mh_;
+  B(scdc::SceneCompose &cmp, sf::RenderTarget &rt, T mh)
+      : Scene(cmp), ca_({mmed::AnimationManager::getAnimation("na_l")}, {}),
+        rt_(rt), mh_(mh) {
     ca_.sp_.setPosition({uid(dre), uid(dre)});
     ca_.select_anim("dance");
     ca_.restart();
     std::cout << "B\n";
   }
-  void draw(sf::RenderTarget &rt) override { ::draw(rt, ca_); }
+  void draw() override { ::draw(rt_, ca_); }
   bool update(sf::Time dt) override {
     ca_.update(dt);
     return false;
@@ -82,7 +98,7 @@ struct M : scdc::Scene {
     x = 8;
     std::cout << "M: " << x << "\n";
   }
-  void draw(sf::RenderTarget &) override {}
+  void draw() override {}
   bool update(sf::Time dt) override { return true; }
   bool handleEvent(const sf::Event &event) override {
     if (event.type == sf::Event::MouseButtonPressed)
@@ -92,8 +108,11 @@ struct M : scdc::Scene {
   ~M() { std::cout << "~M\n"; }
 };
 
+template<mouse_handler T>
 struct LoadScene : scdc::Scene {
   sf::CircleShape circle{50};
+  sf::RenderTarget &rt_;
+  T mh_;
   mutable std::mutex mt_;
   float x = 0;
 #define FUT_PROMISE 0
@@ -114,8 +133,8 @@ struct LoadScene : scdc::Scene {
     bl.wait();
     cmp_.pending_pop();
   }
-  LoadScene(scdc::SceneCompose &sc)
-      : scdc::Scene(sc), msg(), fut(msg.get_future()),
+  LoadScene(scdc::SceneCompose &sc, sf::RenderTarget &rt, T mh)
+      : scdc::Scene(sc), rt_(rt), mh_(mh), msg(), fut(msg.get_future()),
         thr_([this](std::promise<void> &&pr) { foo(std::move(pr)); },
              std::move(msg)),
         end_([this](auto ftr) { bar(ftr); }, fut) {}
@@ -136,8 +155,8 @@ struct LoadScene : scdc::Scene {
       cmp_.pending_pop();
     }
   }
-  LoadScene(scdc::SceneCompose &sc)
-      : scdc::Scene(sc), thr_([this] { foo(); }), end_([this] { bar(); }) {}
+  LoadScene(scdc::SceneCompose &sc, sf::RenderTarget &rt, T mh)
+      : rt_(rt), mh_(mh), scdc::Scene(sc), thr_([this] { foo(); }), end_([this] { bar(); }) {}
 #elif LATCH
   std::latch lt;
   std::jthread thr_, end_;
@@ -149,7 +168,7 @@ struct LoadScene : scdc::Scene {
     }
     lt.count_down();
   }
-  
+
   void bar() {
     lt.wait();
     cmp_.pending_pop();
@@ -163,32 +182,33 @@ struct LoadScene : scdc::Scene {
     }
     return false;
   }
-  void draw(sf::RenderTarget &rt) override { ::draw(rt, circle); }
+  void draw() override { ::draw(rt_, circle); }
   bool handleEvent(const sf::Event &event) override { return true; }
   ~LoadScene() {}
 };
 
-bool A::handleEvent(const sf::Event &event) {
+template<mouse_handler T>
+bool A<T>::handleEvent(const sf::Event &event) {
   if (event.type == sf::Event::KeyPressed)
     switch (event.key.code) {
     case sf::Keyboard::A:
-      cmp_.pending_push<A>();
+      cmp_.pending_push<A>(rt_, mh_);
       break;
     case sf::Keyboard::B:
-      cmp_.pending_push<B>();
+      cmp_.pending_push<B<decltype(mh_)>>(rt_, mh_);
       break;
     case sf::Keyboard::P:
       cmp_.pending_pop();
       break;
     case sf::Keyboard::C:
       cmp_.pending_clear();
-      cmp_.pending_push<A>();
+      cmp_.pending_push<A>(rt_, mh_);
       break;
     case sf::Keyboard::M:
       cmp_.pending_push<M>(x, y);
       break;
     case sf::Keyboard::L:
-      cmp_.pending_push<LoadScene>();
+      cmp_.pending_push<LoadScene<decltype(mh_)>>(rt_, mh_);
       break;
     default:
       break;
@@ -196,14 +216,32 @@ bool A::handleEvent(const sf::Event &event) {
   return false;
 }
 
+template<mouse_handler MH>
+struct Test : scdc::Scene {
+  sf::CircleShape circle{50};
+  sf::RenderTarget &rt_;
+  MH mh_;
+  Test(scdc::SceneCompose &cmp, sf::RenderTarget &rt, MH mh)
+    : scdc::Scene(cmp), rt_(rt), mh_(mh) {}
+  void draw() override {
+    ::draw(rt_, circle);
+  }
+  bool update(sf::Time dt) override {
+    return true;
+  }
+  bool handleEvent(const sf::Event &event) override {return true;}
+};
+
 int main() try {
   auto &&aniM = mmed::AnimationManager::getInstance();
   aniM.loadFile("animations.json");
   auto scmp = scdc::SceneCompose{};
-  scmp.pending_push<A>();
 
   auto window = sf::RenderWindow{sf::VideoMode(400, 400), "Test Manager",
                                  sf::Style::Titlebar | sf::Style::Close};
+  auto x = [&window]{return sf::Mouse::getPosition(window);};
+  scmp.pending_push<A<decltype(x)>>(window, x);
+  // scmp.pending_push<Test<decltype(x)>>(window, x);
   sf::Clock clock;
 
   while (window.isOpen()) {
@@ -219,7 +257,7 @@ int main() try {
     if (scmp.empty())
       window.close();
     window.clear();
-    draw(window, scmp);
+    scmp.draw();
     window.display();
   }
   return 0;

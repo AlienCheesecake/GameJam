@@ -34,9 +34,9 @@ void SceneCompose::handleEvent(sf::Event event) {
   consume_tasks();
 }
 
-void SceneCompose::draw(sf::RenderTarget &rnd) {
+void SceneCompose::draw() {
   for (auto &&i : scenes_)
-    i->draw(rnd);
+    i->draw();
 }
 
 void SceneCompose::update(sf::Time dt) {
@@ -47,11 +47,3 @@ void SceneCompose::update(sf::Time dt) {
 }
 
 bool SceneCompose::empty() const noexcept { return scenes_.empty(); }
-
-template <> void draw<scdc::Scene &>(sf::RenderTarget &rt, scdc::Scene &sc) {
-  sc.draw(rt);
-}
-template <>
-void draw<scdc::SceneCompose &>(sf::RenderTarget &rt, scdc::SceneCompose &sc) {
-  sc.draw(rt);
-}

@@ -1,6 +1,5 @@
 #pragma once
 #include "fire_once.hh"
-#include "mmedia/draw.hh"
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <queue>
@@ -16,7 +15,7 @@ struct Scene {
   SceneCompose &cmp_;
   Scene(SceneCompose &cmp) : cmp_(cmp) {}
 
-  virtual void draw(sf::RenderTarget &) = 0;
+  virtual void draw() = 0;
   virtual bool update(sf::Time dt) = 0;
   virtual bool handleEvent(const sf::Event &event) = 0;
 
@@ -63,11 +62,7 @@ public:
   void pending_clear();
 
   void handleEvent(sf::Event event);
-  void draw(sf::RenderTarget &rnd);
+  void draw();
   void update(sf::Time dt);
 };
 } // namespace scdc
-
-template <> void draw<scdc::Scene &>(sf::RenderTarget &, scdc::Scene &);
-template <>
-void draw<scdc::SceneCompose &>(sf::RenderTarget &, scdc::SceneCompose &);
