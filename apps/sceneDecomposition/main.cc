@@ -6,6 +6,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Audio/Sound.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -13,36 +14,32 @@
 #include <SFML/Window/Context.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <future>
 #include <iostream>
+#include <latch>
+#include <mutex>
 #include <random>
+#include <thread>
 
 struct Foo {
-  Foo() {
-    std::cout << "Foo()\n";
-  }
-  Foo(const Foo &) {
-    std::cout << "Foo(c&)\n";
-  }
-  Foo(Foo &&) {
-    std::cout << "Foo(&&)\n";
-  }
-  Foo&operator=(const Foo &) {
+  Foo() { std::cout << "Foo()\n"; }
+  Foo(const Foo &) { std::cout << "Foo(c&)\n"; }
+  Foo(Foo &&) { std::cout << "Foo(&&)\n"; }
+  Foo &operator=(const Foo &) {
     std::cout << "Foo=(c&)\n";
     return *this;
   }
-  Foo&operator=(Foo &&) {
+  Foo &operator=(Foo &&) {
     std::cout << "Foo=(&&)\n";
     return *this;
   }
-  ~Foo() {
-    std::cout << "~Foo()\n";
-  }
+  ~Foo() { std::cout << "~Foo()\n"; }
 };
 
 struct A : scdc::Scene {
   int x = 0;
   Foo y;
-  mmed::MusicField mf{"audio/sleep.ogg"};
+  // mmed::MusicField mf{"audio/sleep.ogg"};
   A(scdc::SceneCompose &cmp) : Scene(cmp) { std::cout << "A\n"; }
   void draw(sf::RenderTarget &) override {}
   bool update(sf::Time dt) override { return false; }
@@ -87,12 +84,88 @@ struct M : scdc::Scene {
   }
   void draw(sf::RenderTarget &) override {}
   bool update(sf::Time dt) override { return true; }
-  bool handleEvent(const sf::Event &event) override { 
-    if (event.type == sf::Event::MouseButtonPressed) 
+  bool handleEvent(const sf::Event &event) override {
+    if (event.type == sf::Event::MouseButtonPressed)
       std::cout << "Quack! " << x++ << "\n", sound.play();
     return true;
   }
   ~M() { std::cout << "~M\n"; }
+};
+
+struct LoadScene : scdc::Scene {
+  sf::CircleShape circle{50};
+  mutable std::mutex mt_;
+  float x = 0;
+#define FUT_PROMISE 0
+#define CONDITION_VARIABLE 1
+#define LATCH 1
+#if FUT_PROMISE
+  std::promise<void> msg;
+  std::shared_future<void> fut;
+  std::jthread thr_, end_;
+  void foo(std::promise<void> &&rdy) {
+    for (size_t i = 0; i < 10000000; ++i) {
+      std::lock_guard lk{mt_};
+      x = x + 5e-7;
+    }
+    { rdy.set_value(); }
+  }
+  void bar(std::shared_future<void> bl) {
+    bl.wait();
+    cmp_.pending_pop();
+  }
+  LoadScene(scdc::SceneCompose &sc)
+      : scdc::Scene(sc), msg(), fut(msg.get_future()),
+        thr_([this](std::promise<void> &&pr) { foo(std::move(pr)); },
+             std::move(msg)),
+        end_([this](auto ftr) { bar(ftr); }, fut) {}
+#elif CONDITION_VARIABLE
+  std::jthread thr_, end_;
+  std::condition_variable var;
+  void foo() {
+    for (size_t i = 0; i < 10000000; ++i) {
+      std::lock_guard lk{mt_};
+      x = x + 5e-7;
+    }
+    var.notify_all();
+  }
+  void bar() {
+    {
+      std::unique_lock lk{mt_};
+      var.wait(lk);
+      cmp_.pending_pop();
+    }
+  }
+  LoadScene(scdc::SceneCompose &sc)
+      : scdc::Scene(sc), thr_([this] { foo(); }), end_([this] { bar(); }) {}
+#elif LATCH
+  std::latch lt;
+  std::jthread thr_, end_;
+
+  void foo() {
+    for (size_t i = 0; i < 10000000; ++i) {
+      std::lock_guard lk{mt_};
+      x = x + 5e-7;
+    }
+    lt.count_down();
+  }
+  
+  void bar() {
+    lt.wait();
+    cmp_.pending_pop();
+  }
+#endif
+
+  bool update(sf::Time dt) override {
+    {
+      std::lock_guard lk{mt_};
+      circle.setRadius(100 + 50 * sin(x));
+    }
+    return false;
+  }
+  void draw(sf::RenderTarget &rt) override { ::draw(rt, circle); }
+  bool handleEvent(const sf::Event &event) override { return true; }
+  ~LoadScene() {}
 };
 
 bool A::handleEvent(const sf::Event &event) {
@@ -114,6 +187,9 @@ bool A::handleEvent(const sf::Event &event) {
     case sf::Keyboard::M:
       cmp_.pending_push<M>(x, y);
       break;
+    case sf::Keyboard::L:
+      cmp_.pending_push<LoadScene>();
+      break;
     default:
       break;
     }
@@ -121,8 +197,6 @@ bool A::handleEvent(const sf::Event &event) {
 }
 
 int main() try {
-  int k = 0;
-  std::cout << k << "\n";
   auto &&aniM = mmed::AnimationManager::getInstance();
   aniM.loadFile("animations.json");
   auto scmp = scdc::SceneCompose{};

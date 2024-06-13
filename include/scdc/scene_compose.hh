@@ -4,7 +4,6 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <queue>
-#include <iostream>
 #include <tuple>
 #include <vector>
 
