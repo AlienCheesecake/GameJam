@@ -8,90 +8,175 @@
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <nlohmann/json.hpp>
+#include "scdc/scene_compose.hh"
+#include "mmedia/AssetManager.hh"
+#include "mmedia/MusicPlayer.hh"
 
-class Menu
-{
-public:
-sf::Sprite backgraund;
-float menu_X;
-float menu_Y;
-int menu_step;
-//int menu_selected;
+using namespace scdc;
+using namespace mmed;
 
-mmed::CharacterAnimation button_start{{mmed::AnimationManager::getAnimation("na_l"), mmed::AnimationManager::getAnimation("na_2"),
-                                  mmed::AnimationManager::getAnimation("na_3")},
-                                  {}};
-mmed::CharacterAnimation button_level{{mmed::AnimationManager::getAnimation("na_l"), mmed::AnimationManager::getAnimation("na_2"),
-                                  mmed::AnimationManager::getAnimation("na_3")},
-                                  {}};
-mmed::CharacterAnimation button_exit{{mmed::AnimationManager::getAnimation("na_l"), mmed::AnimationManager::getAnimation("na_2"),
-                                  mmed::AnimationManager::getAnimation("na_3")},
-                                  {}};
-public:
-Menu(float x, float y, int step)
+struct Mehehenu:Scene
 {
-    menu_X = x;
-    menu_Y = y;
-    menu_step = step;
-    button_start.sp_.setPosition(sf::Vector2f(menu_X, menu_Y));
-    button_level.sp_.setPosition(sf::Vector2f(menu_X, menu_Y+menu_step));
-    button_exit.sp_.setPosition(sf::Vector2f(menu_X, menu_Y+2*menu_step));
-}
+  sf::RenderWindow &win;
+
+  sf::Texture background1 = AssetManager::getTexture("images/fon1.png");
+  sf::Texture background2 = AssetManager::getTexture("images/fon2.png");
+  sf::Sprite bg;
+
+  sf::Sprite button_start;
+  sf::Texture start = AssetManager::getTexture("images/start.png");
+  sf::Texture start_select = AssetManager::getTexture("images/start_select.png");
+  sf::Texture start_final = AssetManager::getTexture("images/start_final.png");
+
+  sf::Sprite button_exit;
+  sf::Texture exit = AssetManager::getTexture("images/exit.png");
+  sf::Texture exit_select = AssetManager::getTexture("images/exit_select.png");
+  sf::Texture exit_final = AssetManager::getTexture("images/exit_final.png");
+
+  MusicField mf{"audio/goofy.ogg"};
+  Mehehenu(SceneCompose &cmp, sf::RenderWindow &win) : Scene(cmp), win(win)
+  {
+    button_start.setPosition(750, 200);
+    button_exit.setPosition(790, 400);
+    bg.setTexture(background2);
+    button_start.setTexture(start);
+    button_exit.setTexture(exit);
+  }
+  void draw(sf::RenderTarget &window) override 
+  { 
+    ::draw(window, bg); 
+    ::draw(window, button_start);
+    ::draw(window, button_exit);
+  }
+  bool update(sf::Time dt) override 
+  {
+    //ca_.update(dt);
+    return false;
+  }
+  bool handleEvent(const sf::Event &event) override 
+  { 
+    sf::Vector2i pos = sf::Mouse::getPosition(win);
+    sf::Vector2f mousepos = win.mapPixelToCoords(pos);
+    if(button_start.getGlobalBounds().contains(mousepos.x, mousepos.y))
+    {
+      button_start.setTexture(start_select);
+      if(event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+      {
+        button_start.setTexture(start_final);
+      }
+    }
+    else if(button_exit.getGlobalBounds().contains(mousepos.x, mousepos.y))
+    {
+      button_exit.setTexture(exit_select);
+      if(event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+      {
+        button_exit.setTexture(exit_final);
+        cmp_.pending_pop();
+      }
+    }
+    else
+    {
+      button_start.setTexture(start);
+      button_exit.setTexture(exit);
+    }
+    return true; 
+  }
 };
 
-int main() 
+struct Menu:Scene
 {
-    auto &&aniM = mmed::AnimationManager::getInstance();
-    aniM.loadFile("animations.json");
-    mmed::CharacterAnimation character{{mmed::AnimationManager::getAnimation("na_l"), mmed::AnimationManager::getAnimation("na_2"),
-                                  mmed::AnimationManager::getAnimation("na_3")},
-                                  {}};
-    
+  sf::RenderWindow &win;
 
-    sf::RenderWindow window = sf::RenderWindow{sf::VideoMode(1920, 1080), "Test Manager",
-                                 sf::Style::Titlebar | sf::Style::Close};
-    sf::Clock clock;
-    Menu menu{700, 150, 300};
-    menu.button_start.select_anim("dance");
-    menu.button_level.select_anim("dance");
-    menu.button_exit.select_anim("dance");
-    while (window.isOpen()) 
+  sf::Texture background1 = AssetManager::getTexture("images/fon1.png");
+  sf::Texture background2 = AssetManager::getTexture("images/fon2.png");
+  sf::Sprite bg;
+
+  sf::Sprite button_start;
+  sf::Texture start = AssetManager::getTexture("images/start.png");
+  sf::Texture start_select = AssetManager::getTexture("images/start_select.png");
+  sf::Texture start_final = AssetManager::getTexture("images/start_final.png");
+
+  sf::Sprite button_exit;
+  sf::Texture exit = AssetManager::getTexture("images/exit.png");
+  sf::Texture exit_select = AssetManager::getTexture("images/exit_select.png");
+  sf::Texture exit_final = AssetManager::getTexture("images/exit_final.png");
+
+  MusicField mf{"audio/sleep.ogg"};
+  Menu(SceneCompose &cmp, sf::RenderWindow &win) : Scene(cmp), win(win)
+  {
+    button_start.setPosition(750, 200);
+    button_exit.setPosition(790, 400);
+    bg.setTexture(background1);
+    button_start.setTexture(start);
+    button_exit.setTexture(exit);
+  }
+  void draw(sf::RenderTarget &window) override 
+  { 
+    ::draw(window, bg); 
+    ::draw(window, button_start);
+    ::draw(window, button_exit);
+  }
+  bool update(sf::Time dt) override 
+  {
+    //ca_.update(dt);
+    return false;
+  }
+  bool handleEvent(const sf::Event &event) override 
+  { 
+    sf::Vector2i pos = sf::Mouse::getPosition(win);
+    sf::Vector2f mousepos = win.mapPixelToCoords(pos);
+    if(button_start.getGlobalBounds().contains(mousepos.x, mousepos.y))
     {
-        auto dt = clock.restart();
-        sf::Event event;
-        sf::Vector2i pos = sf::Mouse::getPosition(window);
-        sf::Vector2f mousepos = window.mapPixelToCoords(pos);
-        while (window.pollEvent(event))
-        {
-            if(event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
-            {
-                if(menu.button_start.sp_.getGlobalBounds().contains(mousepos.x, mousepos.y))
-                {
-                    menu.button_start.select_anim("break_dance");
-                    menu.button_start.restart();
-                }
-                if(menu.button_level.sp_.getGlobalBounds().contains(mousepos.x, mousepos.y))
-                {
-                    menu.button_level.select_anim("break_dance");
-                    menu.button_level.restart();
-                }
-                if(menu.button_exit.sp_.getGlobalBounds().contains(mousepos.x, mousepos.y))
-                {
-                    menu.button_exit.select_anim("break_dance");
-                    menu.button_exit.restart();
-                }
-            }
-            if (event.type == sf::Event::Closed)
-                            window.close();
-        }
-            menu.button_exit.update(dt);
-            menu.button_start.update(dt);
-            menu.button_level.update(dt);
-            window.clear();
-            draw(window, menu.button_start);
-            draw(window, menu.button_level);
-            draw(window, menu.button_exit);
-            window.display();
+      button_start.setTexture(start_select);
+      if(event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+      {
+        bg.setTexture(background2);
+        button_start.setTexture(start_final);
+        cmp_.pending_pop();
+        cmp_.pending_push<Mehehenu>(win);
+      }
     }
+    else if(button_exit.getGlobalBounds().contains(mousepos.x, mousepos.y))
+    {
+      button_exit.setTexture(exit_select);
+      if(event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+      {
+        button_exit.setTexture(exit_final);
+        cmp_.pending_pop();
+      }
+    }
+    else
+    {
+      button_start.setTexture(start);
+      button_exit.setTexture(exit);
+    }
+    return true; 
+  }
+};
 
+int main() {
+  auto window = sf::RenderWindow{sf::VideoMode(1920, 1080), "Test Manager",
+                                 sf::Style::Titlebar | sf::Style::Close};
+  sf::Clock clock;
+  SceneCompose scmp = SceneCompose();
+  scmp.pending_push<Menu>(window);
+
+  while (window.isOpen()) {
+    auto dt = clock.restart();
+
+    sf::Event event;
+    while (window.pollEvent(event)) 
+    {
+      scmp.handleEvent(event);
+      if (event.type == sf::Event::Closed)
+        window.close();
+    }
+    scmp.update(dt);
+    if(scmp.empty())
+    {window.close();}
+    window.clear();
+    scmp.draw(window);
+    window.display();
+  }
+  return 0;
 }
