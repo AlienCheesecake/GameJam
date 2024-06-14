@@ -139,6 +139,8 @@ struct Mehehenu : Scene {
     // ::draw(window, start_ca_);
     // ::draw(window, exit_ca_);
     ::draw(window, bg);
+    ::draw(window, start_ca_);
+    ::draw(window, exit_ca_);
     // window << bg << start_ca_ << exit_ca_;
     // window.setView(window.getDefaultView());
   }
@@ -206,6 +208,8 @@ struct Menu : Scene {
   }
   void draw() override { 
     ::draw(window, bg);
+    ::draw(window, button_start);
+    ::draw(window, button_exit);
     // window << bg << button_start << button_exit;
      }
   bool update(sf::Time dt) override { return false; }

@@ -95,6 +95,14 @@ void draw(sf::RenderTarget &rt, const Animator &anim, sf::RenderStates st) {
   ::draw(rt, anim.sp_, st);
 }
 
-void draw(sf::RenderTarget &rt, const CharacterAnimation &ca, sf::RenderStates st) {
+void draw(sf::RenderTarget &rt, const CharacterAnimation &ca,
+          sf::RenderStates st) {
   ::draw(rt, ca.sp_, st);
+}
+
+Animation Animation::one_frame_anim(const std::string &name,
+                                    const std::string &path,
+                                    sf::Color mask_clr) {
+  auto [w, h] = mmed::AssetManager::getTexture(std::string(path)).getSize();
+  return {name, path, 1, 1, sf::Vector2i(w, h), {}, mask_clr, false};
 }
