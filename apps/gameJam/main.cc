@@ -20,6 +20,7 @@
 #include <concepts>
 #include <memory>
 #include <nlohmann/json.hpp>
+#include <tuple>
 
 using namespace scdc;
 using namespace mmed;
@@ -35,13 +36,14 @@ concept void_func = requires(T t) {
 };
 
 namespace GUI {
-struct Component {
+struct Component : sf::Transformable, sf::Drawable {
   using ptr = std::shared_ptr<Component>;
   virtual bool handleEvent(const sf::Event &) = 0;
   virtual bool update(sf::Time) = 0;
   virtual void hover() = 0;
   virtual void press() = 0;
   virtual void release() = 0;
+  virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const = 0;
   virtual ~Component() = default;
 };
 template <typename T>
@@ -65,14 +67,12 @@ struct Container : public Component {
     return std::any_of(cld_.begin(), cld_.end(),
                        [&ev](auto &&i) { return i->handleEvent(ev); });
   }
-  // template<GUI::component_child T, typename... Args>
-  // void create_component() {
-  //
-  // }
+  void draw(sf::RenderTarget &rt, sf::RenderStates states) const override {
+    std::for_each(cld_.begin(), cld_.end(), [&rt, states](auto &&i) { i->draw(rt, states); });
+  }
 };
 
 template <mouse_handler MH, void_func Rls> struct Button : Component {
-  sf::RenderTarget &rndr_;
   MH mh_;
   Rls rls_;
   CharacterAnimation anim_;
@@ -89,6 +89,10 @@ template <mouse_handler MH, void_func Rls> struct Button : Component {
   }
   inline bool contains() { return rect_.contains(mh_()); }
   bool handleEvent(const sf::Event &ev) override {}
+  void draw(sf::RenderTarget &target, sf::RenderStates states) const override {
+    // target << std::forward_as_tuple(anim_.sp_, states);
+    ::draw(target, anim_, states);
+  }
 };
 
 } // namespace GUI
@@ -134,7 +138,8 @@ struct Mehehenu : Scene {
     // window.setView(view_);
     // ::draw(window, start_ca_);
     // ::draw(window, exit_ca_);
-    window << bg << start_ca_ << exit_ca_;
+    ::draw(window, bg);
+    // window << bg << start_ca_ << exit_ca_;
     // window.setView(window.getDefaultView());
   }
   bool update(sf::Time dt) override { return false; }
@@ -189,16 +194,11 @@ struct Menu : Scene {
     button_start.setTexture(start);
     button_exit.setTexture(exit);
   }
-  void draw() override {
-    // ::draw(window, bg);
-    // ::draw(window, button_start);
-    // ::draw(window, button_exit);
-    window << bg << button_start << button_exit;
-  }
-  bool update(sf::Time dt) override {
-    // ca_.update(dt);
-    return false;
-  }
+  void draw() override { 
+    ::draw(window, bg);
+    // window << bg << button_start << button_exit;
+     }
+  bool update(sf::Time dt) override { return false; }
   bool handleEvent(const sf::Event &event) override {
     sf::Vector2i pos = sf::Mouse::getPosition(window);
     sf::Vector2f mousepos = window.mapPixelToCoords(pos);

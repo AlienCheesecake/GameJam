@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/RenderStates.hpp>
 
 namespace mmed{
 struct Animation {
@@ -50,5 +51,5 @@ struct CharacterAnimation : private Animator {
 };
 }
 
-void draw(sf::RenderTarget &rt, const mmed::Animator &anim);
-void draw(sf::RenderTarget &rt, const mmed::CharacterAnimation &ca);
+void draw(sf::RenderTarget &rt, const mmed::Animator &anim, sf::RenderStates = sf::RenderStates::Default);
+void draw(sf::RenderTarget &rt, const mmed::CharacterAnimation &ca, sf::RenderStates = sf::RenderStates::Default);

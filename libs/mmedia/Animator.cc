@@ -2,10 +2,12 @@
 #include "AssetManager.hh"
 #include "draw.hh"
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/RenderStates.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <tuple>
 
 using namespace mmed;
 
@@ -89,10 +91,10 @@ void CharacterAnimation::select_anim(std::string_view name) {
   switchAnimation(*fnd);
 }
 
-void draw(sf::RenderTarget &rt, const Animator &anim) {
-  rt << anim.sp_;
+void draw(sf::RenderTarget &rt, const Animator &anim, sf::RenderStates st) {
+  ::draw(rt, anim.sp_, st);
 }
 
-void draw(sf::RenderTarget &rt, const CharacterAnimation &ca) {
-  rt << ca.sp_;
+void draw(sf::RenderTarget &rt, const CharacterAnimation &ca, sf::RenderStates st) {
+  ::draw(rt, ca.sp_, st);
 }
