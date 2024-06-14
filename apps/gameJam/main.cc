@@ -74,7 +74,9 @@ struct Container : public Component {
                        [&ev](auto &&i) { return i->handleEvent(ev); });
   }
   void draw(sf::RenderTarget &rt, sf::RenderStates states) const override {
-    std::for_each(cld_.begin(), cld_.end(), [&rt, states](auto &&i) { i->draw(rt, states); });
+    // std::for_each(cld_.begin(), cld_.end(), [&rt, states](auto &&i) { i->draw(rt, states); });
+    for (auto &&i: cld_)
+      ::draw(rt, *i, states);
   }
 };
 
