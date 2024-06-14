@@ -98,12 +98,6 @@ template <mouse_handler MH, void_func Rls> struct Button : Component {
 
 } // namespace GUI
 
-mmed::Animation one_frame_anim(const std::string &name, const std::string &path,
-                               sf::Color mask_clr = {0, 255, 0, 255}) {
-  auto [w, h] = mmed::AssetManager::getTexture(std::string(path)).getSize();
-  return {name, path, 1, 1, sf::Vector2i(w, h), {}, mask_clr, false};
-}
-
 struct Mehehenu : Scene {
   sf::View view_{};
   sf::RenderWindow &window;
@@ -113,15 +107,15 @@ struct Mehehenu : Scene {
   sf::Sprite bg;
 
   mmed::CharacterAnimation start_ca_ = {
-      {one_frame_anim("release", "images/start.png"),
-       one_frame_anim("hover", "images/start_select.png"),
-       one_frame_anim("press", "images/start_final.png")},
+      {mmed::Animation::one_frame_anim("release", "images/start.png"),
+       mmed::Animation::one_frame_anim("hover", "images/start_select.png"),
+       mmed::Animation::one_frame_anim("press", "images/start_final.png")},
       {}};
 
   mmed::CharacterAnimation exit_ca_ = {
-      {one_frame_anim("release", "images/exit.png"),
-       one_frame_anim("hover", "images/exit_select.png"),
-       one_frame_anim("press", "images/exit_final.png")},
+      {mmed::Animation::one_frame_anim("release", "images/exit.png"),
+       mmed::Animation::one_frame_anim("hover", "images/exit_select.png"),
+       mmed::Animation::one_frame_anim("press", "images/exit_final.png")},
       {}};
 
   MusicField mf{"audio/goofy.ogg"};

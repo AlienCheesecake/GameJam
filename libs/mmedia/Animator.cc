@@ -89,10 +89,12 @@ void CharacterAnimation::select_anim(std::string_view name) {
   switchAnimation(*fnd);
 }
 
-void draw(sf::RenderTarget &rt, const Animator &anim) {
-  rt << anim.sp_;
-}
+void draw(sf::RenderTarget &rt, const Animator &anim) { rt << anim.sp_; }
 
-void draw(sf::RenderTarget &rt, const CharacterAnimation &ca) {
-  rt << ca.sp_;
+void draw(sf::RenderTarget &rt, const CharacterAnimation &ca) { rt << ca.sp_; }
+
+Animation Animation::one_frame_anim(const std::string &name, const std::string &path,
+                               sf::Color mask_clr) {
+  auto [w, h] = mmed::AssetManager::getTexture(std::string(path)).getSize();
+  return {name, path, 1, 1, sf::Vector2i(w, h), {}, mask_clr, false};
 }
