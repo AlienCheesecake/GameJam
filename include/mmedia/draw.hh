@@ -27,6 +27,7 @@ sf::RenderTarget &operator<<(sf::RenderTarget &rt, T &&t) {
   return rt;
 }
 
+namespace mmed{
 template <typename T> struct RenderIterator {
   using iterator_category = std::output_iterator_tag;
   using value_type = void;
@@ -51,3 +52,4 @@ template <typename T> struct RenderIterator {
   RenderIterator &operator++(int) { return *this; }
   RenderIterator &operator*() { return *this; }
 };
+}

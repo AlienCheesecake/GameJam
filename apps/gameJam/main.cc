@@ -204,7 +204,7 @@ struct Menu : Scene {
     // ::draw(window, button_start);
     // ::draw(window, button_exit);
     window << bg << button_start << button_exit;
-    std::ranges::copy(circles, RenderIterator<sf::CircleShape>(window));
+    std::ranges::copy(circles, mmed::RenderIterator<sf::CircleShape>(window));
   }
   bool update(sf::Time dt) override {
     // ca_.update(dt);
