@@ -5,6 +5,7 @@
 #include "scdc/scene_compose.hh"
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
@@ -17,10 +18,14 @@
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <algorithm>
+#include <array>
 #include <concepts>
+#include <iterator>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <tuple>
+#include <ranges>
+#include <vector>
 
 using namespace scdc;
 using namespace mmed;
@@ -40,6 +45,7 @@ struct Component : sf::Transformable, sf::Drawable {
   using ptr = std::shared_ptr<Component>;
   virtual bool handleEvent(const sf::Event &) = 0;
   virtual bool update(sf::Time) = 0;
+  virtual void draw(sf::RenderTarget &rt) const = 0;
   virtual void hover() = 0;
   virtual void press() = 0;
   virtual void release() = 0;
@@ -97,12 +103,6 @@ template <mouse_handler MH, void_func Rls> struct Button : Component {
 
 } // namespace GUI
 
-mmed::Animation one_frame_anim(const std::string &name, const std::string &path,
-                               sf::Color mask_clr = {0, 255, 0, 255}) {
-  auto [w, h] = mmed::AssetManager::getTexture(std::string(path)).getSize();
-  return {name, path, 1, 1, sf::Vector2i(w, h), {}, mask_clr, false};
-}
-
 struct Mehehenu : Scene {
   sf::View view_{};
   sf::RenderWindow &window;
@@ -112,15 +112,15 @@ struct Mehehenu : Scene {
   sf::Sprite bg;
 
   mmed::CharacterAnimation start_ca_ = {
-      {one_frame_anim("release", "images/start.png"),
-       one_frame_anim("hover", "images/start_select.png"),
-       one_frame_anim("press", "images/start_final.png")},
+      {mmed::Animation::one_frame_anim("release", "images/start.png"),
+       mmed::Animation::one_frame_anim("hover", "images/start_select.png"),
+       mmed::Animation::one_frame_anim("press", "images/start_final.png")},
       {}};
 
   mmed::CharacterAnimation exit_ca_ = {
-      {one_frame_anim("release", "images/exit.png"),
-       one_frame_anim("hover", "images/exit_select.png"),
-       one_frame_anim("press", "images/exit_final.png")},
+      {mmed::Animation::one_frame_anim("release", "images/exit.png"),
+       mmed::Animation::one_frame_anim("hover", "images/exit_select.png"),
+       mmed::Animation::one_frame_anim("press", "images/exit_final.png")},
       {}};
 
   MusicField mf{"audio/goofy.ogg"};
@@ -185,9 +185,19 @@ struct Menu : Scene {
   sf::Texture exit = AssetManager::getTexture("images/exit.png");
   sf::Texture exit_select = AssetManager::getTexture("images/exit_select.png");
   sf::Texture exit_final = AssetManager::getTexture("images/exit_final.png");
+  std::vector<sf::CircleShape> circles;
+  std::vector<sf::Drawable *> test;
 
   MusicField mf{"audio/sleep.ogg"};
   Menu(SceneCompose &cmp, sf::RenderWindow &win) : Scene(cmp), window(win) {
+    for (size_t i = 0; i < 5; ++i) {
+      circles.emplace_back(i * 50);
+      circles.back().setPosition(i * 50, i * 10);
+    }
+    auto insrt = std::back_inserter(test);
+    for (auto &&i : circles) {
+      insrt = &i;
+    }
     button_start.setPosition(750, 200);
     button_exit.setPosition(790, 400);
     bg.setTexture(background1);

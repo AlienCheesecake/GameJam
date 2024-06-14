@@ -2,7 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
 
-namespace mmed{
+namespace mmed {
 struct Animation {
   std::string name, texture_path;
   uint64_t total_frame, columns;
@@ -11,6 +11,9 @@ struct Animation {
   sf::Color mask_color;
   sf::IntRect get_box(uint64_t cur_frame) const;
   bool loop;
+  static Animation one_frame_anim(const std::string &name,
+                                  const std::string &path,
+                                  sf::Color mask_clr = {0, 255, 0, 255});
 };
 
 class AnimationManager final {
@@ -49,7 +52,9 @@ struct CharacterAnimation : private Animator {
   using Animator::stop;
   using Animator::update;
 };
-}
+
+mmed::Animation one_frame_anim();
+} // namespace mmed
 
 void draw(sf::RenderTarget &rt, const mmed::Animator &anim, sf::RenderStates = sf::RenderStates::Default);
 void draw(sf::RenderTarget &rt, const mmed::CharacterAnimation &ca, sf::RenderStates = sf::RenderStates::Default);

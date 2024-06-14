@@ -108,8 +108,7 @@ struct M : scdc::Scene {
   ~M() { std::cout << "~M\n"; }
 };
 
-template<mouse_handler T>
-struct LoadScene : scdc::Scene {
+template <mouse_handler T> struct LoadScene : scdc::Scene {
   sf::CircleShape circle{50};
   sf::RenderTarget &rt_;
   T mh_;
@@ -156,7 +155,8 @@ struct LoadScene : scdc::Scene {
     }
   }
   LoadScene(scdc::SceneCompose &sc, sf::RenderTarget &rt, T mh)
-      : rt_(rt), mh_(mh), scdc::Scene(sc), thr_([this] { foo(); }), end_([this] { bar(); }) {}
+      : rt_(rt), mh_(mh), scdc::Scene(sc), thr_([this] { foo(); }),
+        end_([this] { bar(); }) {}
 #elif LATCH
   std::latch lt;
   std::jthread thr_, end_;
@@ -187,8 +187,7 @@ struct LoadScene : scdc::Scene {
   ~LoadScene() {}
 };
 
-template<mouse_handler T>
-bool A<T>::handleEvent(const sf::Event &event) {
+template <mouse_handler T> bool A<T>::handleEvent(const sf::Event &event) {
   if (event.type == sf::Event::KeyPressed)
     switch (event.key.code) {
     case sf::Keyboard::A:
@@ -216,20 +215,15 @@ bool A<T>::handleEvent(const sf::Event &event) {
   return false;
 }
 
-template<mouse_handler MH>
-struct Test : scdc::Scene {
+template <mouse_handler MH> struct Test : scdc::Scene {
   sf::CircleShape circle{50};
   sf::RenderTarget &rt_;
   MH mh_;
   Test(scdc::SceneCompose &cmp, sf::RenderTarget &rt, MH mh)
-    : scdc::Scene(cmp), rt_(rt), mh_(mh) {}
-  void draw() override {
-    ::draw(rt_, circle);
-  }
-  bool update(sf::Time dt) override {
-    return true;
-  }
-  bool handleEvent(const sf::Event &event) override {return true;}
+      : scdc::Scene(cmp), rt_(rt), mh_(mh) {}
+  void draw() override { ::draw(rt_, circle); }
+  bool update(sf::Time dt) override { return true; }
+  bool handleEvent(const sf::Event &event) override { return true; }
 };
 
 int main() try {
@@ -239,7 +233,7 @@ int main() try {
 
   auto window = sf::RenderWindow{sf::VideoMode(400, 400), "Test Manager",
                                  sf::Style::Titlebar | sf::Style::Close};
-  auto x = [&window]{return sf::Mouse::getPosition(window);};
+  auto x = [&window] { return sf::Mouse::getPosition(window); };
   scmp.pending_push<A<decltype(x)>>(window, x);
   // scmp.pending_push<Test<decltype(x)>>(window, x);
   sf::Clock clock;
