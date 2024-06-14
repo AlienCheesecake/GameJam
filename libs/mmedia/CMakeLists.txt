@@ -4,7 +4,6 @@ set(LIB
 set(SRCS
 AssetManager.cc
 Animator.cc
-draw.cc
 MusicPlayer.cc
 )
 

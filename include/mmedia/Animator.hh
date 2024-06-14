@@ -49,3 +49,6 @@ struct CharacterAnimation : private Animator {
   using Animator::update;
 };
 }
+
+void draw(sf::RenderTarget &rt, const mmed::Animator &anim);
+void draw(sf::RenderTarget &rt, const mmed::CharacterAnimation &ca);

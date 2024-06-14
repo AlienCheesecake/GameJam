@@ -1,6 +1,9 @@
 #include "Animator.hh"
 #include "AssetManager.hh"
+#include "draw.hh"
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <fstream>
 #include <nlohmann/json.hpp>
 
@@ -84,4 +87,12 @@ void CharacterAnimation::select_anim(std::string_view name) {
   if (fnd == anims_.end())
     throw std::invalid_argument("Animation not found");
   switchAnimation(*fnd);
+}
+
+void draw(sf::RenderTarget &rt, const Animator &anim) {
+  rt << anim.sp_;
+}
+
+void draw(sf::RenderTarget &rt, const CharacterAnimation &ca) {
+  rt << ca.sp_;
 }

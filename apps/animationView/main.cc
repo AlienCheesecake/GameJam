@@ -48,7 +48,8 @@ int main() {
     }
     character.update(dt);
     window.clear();
-    draw(window, character);
+    // draw(window, character);
+    window << character;
     window.display();
   }
   return 0;

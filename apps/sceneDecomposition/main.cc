@@ -182,7 +182,7 @@ struct LoadScene : scdc::Scene {
     }
     return false;
   }
-  void draw() override { ::draw(rt_, circle); }
+  void draw() override { rt_ << circle; }
   bool handleEvent(const sf::Event &event) override { return true; }
   ~LoadScene() {}
 };

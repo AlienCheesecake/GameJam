@@ -114,16 +114,13 @@ struct Mehehenu : Scene {
       {}};
 
   mmed::CharacterAnimation exit_ca_ = {
-    {
-      one_frame_anim("release", "images/exit.png"),
-      one_frame_anim("hover", "images/exit_select.png"),
-      one_frame_anim("press", "images/exit_final.png")
-    }, {}
-  };
+      {one_frame_anim("release", "images/exit.png"),
+       one_frame_anim("hover", "images/exit_select.png"),
+       one_frame_anim("press", "images/exit_final.png")},
+      {}};
 
   MusicField mf{"audio/goofy.ogg"};
-  Mehehenu(SceneCompose &cmp, sf::RenderWindow &win)
-      : Scene(cmp), window(win) {
+  Mehehenu(SceneCompose &cmp, sf::RenderWindow &win) : Scene(cmp), window(win) {
     view_.setViewport({0.25, 0.25, 0.5, .5});
 
     start_ca_.sp_.setPosition(750, 200);
@@ -133,15 +130,14 @@ struct Mehehenu : Scene {
     bg.setTexture(background2);
   }
   void draw() override {
-    ::draw(window, bg);
+    // ::draw(window, bg);
     // window.setView(view_);
-    ::draw(window, start_ca_);
-    ::draw(window, exit_ca_);
+    // ::draw(window, start_ca_);
+    // ::draw(window, exit_ca_);
+    window << bg << start_ca_ << exit_ca_;
     // window.setView(window.getDefaultView());
   }
-  bool update(sf::Time dt) override {
-    return false;
-  }
+  bool update(sf::Time dt) override { return false; }
   bool handleEvent(const sf::Event &event) override {
     sf::Vector2i pos = sf::Mouse::getPosition(window);
     sf::Vector2f mousepos = window.mapPixelToCoords(pos);
@@ -151,7 +147,8 @@ struct Mehehenu : Scene {
           event.mouseButton.button == sf::Mouse::Left) {
         start_ca_.select_anim("press");
       }
-    } else if (exit_ca_.sp_.getGlobalBounds().contains(mousepos.x, mousepos.y)) {
+    } else if (exit_ca_.sp_.getGlobalBounds().contains(mousepos.x,
+                                                       mousepos.y)) {
       exit_ca_.select_anim("hover");
       if (event.type == sf::Event::MouseButtonPressed &&
           event.mouseButton.button == sf::Mouse::Left) {
@@ -193,9 +190,10 @@ struct Menu : Scene {
     button_exit.setTexture(exit);
   }
   void draw() override {
-    ::draw(window, bg);
-    ::draw(window, button_start);
-    ::draw(window, button_exit);
+    // ::draw(window, bg);
+    // ::draw(window, button_start);
+    // ::draw(window, button_exit);
+    window << bg << button_start << button_exit;
   }
   bool update(sf::Time dt) override {
     // ca_.update(dt);
