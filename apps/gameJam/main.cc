@@ -44,7 +44,7 @@ struct Component {
   using ptr = std::shared_ptr<Component>;
   virtual bool handleEvent(const sf::Event &) = 0;
   virtual bool update(sf::Time) = 0;
-  virtual void draw(sf::RenderTarget &rt) = 0;
+  virtual void draw(sf::RenderTarget &rt) const = 0;
   virtual void hover() = 0;
   virtual void press() = 0;
   virtual void release() = 0;
@@ -71,13 +71,17 @@ struct Container : public Component {
     return std::any_of(cld_.begin(), cld_.end(),
                        [&ev](auto &&i) { return i->handleEvent(ev); });
   }
-  void render(sf::RenderTarget &rt) {
-    std::ranges::copy(cld_, mmed::RenderIterator<Component::ptr>(rt));
+  void draw(sf::RenderTarget &rt) const override {
+    std::transform(cld_.begin(), cld_.end(),
+                   mmed::RenderIterator<Component>(rt),
+                   [](auto &&i) -> Component & { return *i; });
   }
-  // template<GUI::component_child T, typename... Args>
-  // void create_component() {
-  //
-  // }
+#if 0
+  template<GUI::component_child T, typename... Args>
+  void create_component() {
+
+  }
+#endif
 };
 
 template <mouse_handler MH, void_func Rls> struct Button : Component {
@@ -132,14 +136,7 @@ struct Mehehenu : Scene {
     exit_ca_.select_anim("release");
     bg.setTexture(background2);
   }
-  void draw() override {
-    // ::draw(window, bg);
-    // window.setView(view_);
-    // ::draw(window, start_ca_);
-    // ::draw(window, exit_ca_);
-    window << bg << start_ca_ << exit_ca_;
-    // window.setView(window.getDefaultView());
-  }
+  void draw() override { window << bg << start_ca_ << exit_ca_; }
   bool update(sf::Time dt) override { return false; }
   bool handleEvent(const sf::Event &event) override {
     sf::Vector2i pos = sf::Mouse::getPosition(window);
@@ -184,7 +181,7 @@ struct Menu : Scene {
   sf::Texture exit_select = AssetManager::getTexture("images/exit_select.png");
   sf::Texture exit_final = AssetManager::getTexture("images/exit_final.png");
   std::vector<sf::CircleShape> circles;
-  std::vector<sf::Drawable*> test;
+  std::vector<sf::Drawable *> test;
 
   MusicField mf{"audio/sleep.ogg"};
   Menu(SceneCompose &cmp, sf::RenderWindow &win) : Scene(cmp), window(win) {
@@ -193,7 +190,7 @@ struct Menu : Scene {
       circles.back().setPosition(i * 50, i * 10);
     }
     auto insrt = std::back_inserter(test);
-    for (auto &&i: circles) {
+    for (auto &&i : circles) {
       insrt = &i;
     }
     button_start.setPosition(750, 200);
@@ -203,19 +200,12 @@ struct Menu : Scene {
     button_exit.setTexture(exit);
   }
   void draw() override {
-    // ::draw(window, bg);
-    // ::draw(window, button_start);
-    // ::draw(window, button_exit);
     window << bg << button_start << button_exit;
-    // std::ranges::copy(circles, mmed::RenderIterator<sf::CircleShape>(window));
-    // std::ranges::copy(test, mmed::RenderIterator<sf::CircleShape*>(window));
-    for (auto &&i: test)
-      window << *i;
+    std::transform(test.begin(), test.end(),
+                   mmed::RenderIterator<sf::Drawable>(window),
+                   [](auto &&i) -> sf::Drawable & { return *i; });
   }
-  bool update(sf::Time dt) override {
-    // ca_.update(dt);
-    return false;
-  }
+  bool update(sf::Time dt) override { return false; }
   bool handleEvent(const sf::Event &event) override {
     sf::Vector2i pos = sf::Mouse::getPosition(window);
     sf::Vector2f mousepos = window.mapPixelToCoords(pos);

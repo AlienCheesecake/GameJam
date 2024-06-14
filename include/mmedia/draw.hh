@@ -13,13 +13,14 @@ sf::RenderTarget &operator<<(sf::RenderTarget &rt, T &&t) {
   std::forward<T>(t).draw(rt);
   return rt;
 }
-
+#if 0
 template<typename T>
 requires requires (T t, sf::RenderTarget &rt) {t->draw(rt);} 
 sf::RenderTarget &operator<<(sf::RenderTarget &rt, T &&t) {
    std::forward<T>(t)->draw(rt);
    return rt;
 }
+#endif
 
 template <typename T>
   requires requires(T t, sf::RenderTarget &rt) { rt.draw(t); }
