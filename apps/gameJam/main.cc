@@ -44,6 +44,7 @@ struct Component {
   using ptr = std::shared_ptr<Component>;
   virtual bool handleEvent(const sf::Event &) = 0;
   virtual bool update(sf::Time) = 0;
+  virtual void draw(sf::RenderTarget &rt) = 0;
   virtual void hover() = 0;
   virtual void press() = 0;
   virtual void release() = 0;
@@ -69,6 +70,9 @@ struct Container : public Component {
   bool handleEvent(const sf::Event &ev) override {
     return std::any_of(cld_.begin(), cld_.end(),
                        [&ev](auto &&i) { return i->handleEvent(ev); });
+  }
+  void render(sf::RenderTarget &rt) {
+    std::ranges::copy(cld_, mmed::RenderIterator<Component::ptr>(rt));
   }
   // template<GUI::component_child T, typename... Args>
   // void create_component() {
@@ -180,12 +184,17 @@ struct Menu : Scene {
   sf::Texture exit_select = AssetManager::getTexture("images/exit_select.png");
   sf::Texture exit_final = AssetManager::getTexture("images/exit_final.png");
   std::vector<sf::CircleShape> circles;
+  std::vector<sf::Drawable*> test;
 
   MusicField mf{"audio/sleep.ogg"};
   Menu(SceneCompose &cmp, sf::RenderWindow &win) : Scene(cmp), window(win) {
     for (size_t i = 0; i < 5; ++i) {
       circles.emplace_back(i * 50);
       circles.back().setPosition(i * 50, i * 10);
+    }
+    auto insrt = std::back_inserter(test);
+    for (auto &&i: circles) {
+      insrt = &i;
     }
     button_start.setPosition(750, 200);
     button_exit.setPosition(790, 400);
@@ -198,7 +207,10 @@ struct Menu : Scene {
     // ::draw(window, button_start);
     // ::draw(window, button_exit);
     window << bg << button_start << button_exit;
-    std::ranges::copy(circles, mmed::RenderIterator<sf::CircleShape>(window));
+    // std::ranges::copy(circles, mmed::RenderIterator<sf::CircleShape>(window));
+    // std::ranges::copy(test, mmed::RenderIterator<sf::CircleShape*>(window));
+    for (auto &&i: test)
+      window << *i;
   }
   bool update(sf::Time dt) override {
     // ca_.update(dt);

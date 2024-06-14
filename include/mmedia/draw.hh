@@ -14,6 +14,13 @@ sf::RenderTarget &operator<<(sf::RenderTarget &rt, T &&t) {
   return rt;
 }
 
+template<typename T>
+requires requires (T t, sf::RenderTarget &rt) {t->draw(rt);} 
+sf::RenderTarget &operator<<(sf::RenderTarget &rt, T &&t) {
+   std::forward<T>(t)->draw(rt);
+   return rt;
+}
+
 template <typename T>
   requires requires(T t, sf::RenderTarget &rt) { rt.draw(t); }
 sf::RenderTarget &operator<<(sf::RenderTarget &rt, T &&t) {
@@ -21,11 +28,21 @@ sf::RenderTarget &operator<<(sf::RenderTarget &rt, T &&t) {
   return rt;
 }
 
+#if 0
+template <typename T>
+  requires requires(T t, sf::RenderTarget &rt) { rt.draw(*t); }
+sf::RenderTarget &operator<<(sf::RenderTarget &rt, T &&t) {
+  rt.draw(*std::forward<T>(t));
+  return rt;
+}
+#endif
+
 template <typename T>
 sf::RenderTarget &operator<<(sf::RenderTarget &rt, T &&t) {
   ::draw(rt, std::forward<T>(t));
   return rt;
 }
+
 
 namespace mmed{
 template <typename T> struct RenderIterator {
