@@ -5,6 +5,7 @@
 #include "scdc/scene_compose.hh"
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
@@ -17,9 +18,13 @@
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <algorithm>
+#include <array>
 #include <concepts>
+#include <iterator>
 #include <memory>
 #include <nlohmann/json.hpp>
+#include <ranges>
+#include <vector>
 
 using namespace scdc;
 using namespace mmed;
@@ -180,9 +185,14 @@ struct Menu : Scene {
   sf::Texture exit = AssetManager::getTexture("images/exit.png");
   sf::Texture exit_select = AssetManager::getTexture("images/exit_select.png");
   sf::Texture exit_final = AssetManager::getTexture("images/exit_final.png");
+  std::vector<sf::CircleShape> circles;
 
   MusicField mf{"audio/sleep.ogg"};
   Menu(SceneCompose &cmp, sf::RenderWindow &win) : Scene(cmp), window(win) {
+    for (size_t i = 0; i < 5; ++i) {
+      circles.emplace_back(i * 50);
+      circles.back().setPosition(i * 50, i * 10);
+    }
     button_start.setPosition(750, 200);
     button_exit.setPosition(790, 400);
     bg.setTexture(background1);
@@ -194,6 +204,7 @@ struct Menu : Scene {
     // ::draw(window, button_start);
     // ::draw(window, button_exit);
     window << bg << button_start << button_exit;
+    std::ranges::copy(circles, RenderIterator<sf::CircleShape>(window));
   }
   bool update(sf::Time dt) override {
     // ca_.update(dt);
