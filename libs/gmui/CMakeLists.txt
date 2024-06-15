@@ -3,6 +3,7 @@ set(LIB
 
 set(SRCS
   button.cc
+  dd.cc
 )
 
 find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)

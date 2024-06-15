@@ -7,87 +7,9 @@
 #include <SFML/System/Vector2.hpp>
 #include <functional>
 #include <iostream>
+#include "gmui/dd.hh"
 
 using namespace mmed::gmui;
-
-struct FollowAnim {
-  mmed::CharacterAnimation anim;
-  void update(sf::Time dt, const sf::Vector2f &pos) {
-    anim.sp_.setPosition(pos);
-    anim.update(dt);
-  }
-  void draw(sf::RenderTarget &rt, sf::RenderStates states) const {
-    ::draw(rt, anim, states);
-  }
-};
-
-template <typename T> struct BoolDrawable {
-  T t;
-  bool check = true;
-  void update(sf::Time dt, const sf::Vector2f &pos) {
-    if (check)
-      t.update(dt, pos);
-  }
-  void draw(sf::RenderTarget &rt, sf::RenderStates states) const {
-    if (check)
-      ::draw(rt, t, states);
-  }
-  void handleEvent(const sf::Event &event, const sf::Vector2f &pos) {
-    if (check)
-      t.handleEvent(event, pos);
-  }
-};
-
-class DD : public Component {
-  BoolDrawable<FollowAnim> flw_anim;
-
-public:
-  Button btn_;
-  DD(
-      const mmed::CharacterAnimation &btn_anim, const sf::RectangleShape &rs,
-      const mmed::CharacterAnimation &anim, std::function<void()> prs = [] {},
-      std::function<void()> rls = [] {})
-      : btn_(
-            [this, prs] {
-              prs();
-              flw_anim.check = true;
-            },
-            [this, rls] {
-              rls();
-              flw_anim.check = false;
-            },
-            btn_anim, rs),
-        flw_anim({anim}, false) {}
-  sf::Vector2f inner_pos(const sf::Vector2f &p) {
-    flw_anim.t.anim.select_anim("follow");
-    flw_anim.t.anim.restart();
-    auto [px, py] = p;
-    auto transform = getInverseTransform();
-    return transform.transformPoint(px, py);
-  }
-  mmed::CharacterAnimation &follow_animation() {
-    return flw_anim.t.anim;
-  }
-  bool update(sf::Time dt, const sf::Vector2f &pos) override {
-    btn_.update(dt, inner_pos(pos));
-    return true;
-  }
-  bool follow_update(sf::Time dt, const sf::Vector2f &pos) {
-    auto [x, y] = pos;
-    flw_anim.update(dt, pos);
-    return true;
-  }
-  bool handleEvent(const sf::Event &ev, const sf::Vector2f &pos) override {
-    btn_.handleEvent(ev, pos);
-    return true;
-  }
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override {
-    ::draw(target, btn_, states);
-  }
-  void follow_draw(sf::RenderTarget &target, sf::RenderStates states) const {
-    ::draw(target, flw_anim, states);
-  }
-};
 
 struct MenuScene : scdc::Scene {
   sf::View view;
