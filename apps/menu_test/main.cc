@@ -12,7 +12,6 @@
 #include <SFML/Window/Mouse.hpp>
 #include <functional>
 #include <iostream>
-#include <stdexcept>
 
 template <typename T>
 concept mouse_handler = requires(T t) {
@@ -167,8 +166,9 @@ struct MenuScene : scdc::Scene {
             [] { std::cout << "Foo" << std::endl; },
             mmed::CharacterAnimation(button_anim, {}),
             sf::RectangleShape{{100, 50}}} {
-    btn.rect_.setPosition(-100, -50);
-    btn.move(100, 50);
+    btn.move(120, 100);
+    btn.rotate(-30);
+    btn.scale({2, 2});
   }
 
   void draw() override { ::draw(win_, btn); }
