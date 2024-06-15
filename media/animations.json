@@ -56,7 +56,82 @@
         255
       ],
       "isLoop": false
-
+    },
+    {
+      "id_name": "b1_1",
+      "name": "pressed",
+      "texture_path": "images/b1_1.png",
+      "total_frame": 17,
+      "columns": 5,
+      "frame_size": [
+        100,
+        50
+      ],
+      "duration": 0.8,
+      "mask_color": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "isLoop": false
+    },
+    {
+      "id_name": "b1_d",
+      "name": "default",
+      "texture_path": "images/b1_1.png",
+      "total_frame": 1,
+      "columns": 5,
+      "frame_size": [
+        100,
+        50
+      ],
+      "duration": 0.0,
+      "mask_color": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "isLoop": false
+    },
+    {
+      "id_name": "b1_2",
+      "name": "released",
+      "texture_path": "images/b1_2.png",
+      "total_frame": 9,
+      "columns": 3,
+      "frame_size": [
+        100,
+        50
+      ],
+      "duration": 0.4,
+      "mask_color": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "isLoop": false
+    },
+    {
+      "id_name": "b1_0",
+      "name": "hovered",
+      "texture_path": "images/b1_0.png",
+      "total_frame": 9,
+      "columns": 3,
+      "frame_size": [
+        100,
+        50
+      ],
+      "duration": 0.4,
+      "mask_color": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "isLoop": true
     }
   ]
 }

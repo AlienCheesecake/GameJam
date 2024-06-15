@@ -17,151 +17,13 @@
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
-#include <algorithm>
-#include <array>
-#include <concepts>
-#include <functional>
 #include <iterator>
-#include <memory>
 #include <nlohmann/json.hpp>
-#include <ranges>
 #include <string_view>
-#include <thread>
-#include <tuple>
-#include <type_traits>
 #include <vector>
 
 using namespace scdc;
 using namespace mmed;
-
-template <typename T>
-concept mouse_handler = requires(T t) {
-  { t() } -> std::same_as<sf::Vector2i>;
-};
-
-template <typename T>
-concept void_func = requires(T t) {
-  { t() } -> std::same_as<void>;
-};
-
-namespace GUI {
-struct Component : sf::Transformable, sf::Drawable {
-  using ptr = std::shared_ptr<Component>;
-  virtual bool handleEvent(const sf::Event &) = 0;
-  virtual bool update(sf::Time) = 0;
-  virtual void draw(sf::RenderTarget &target,
-                    sf::RenderStates states) const = 0;
-  virtual ~Component() = default;
-};
-template <typename T>
-concept component_child = std::derived_from<T, Component>;
-struct Container : public Component {
-  std::vector<Component::ptr> cld_;
-  bool update(sf::Time dt) override {
-    return std::any_of(cld_.begin(), cld_.end(),
-                       [dt](auto &&i) { return i->update(dt); });
-  }
-  bool handleEvent(const sf::Event &ev) override {
-    return std::any_of(cld_.begin(), cld_.end(),
-                       [&ev](auto &&i) { return i->handleEvent(ev); });
-  }
-  void draw(sf::RenderTarget &rt, sf::RenderStates states) const override {
-    // std::for_each(cld_.begin(), cld_.end(),
-    // [&rt, states](auto &&i) { ::draw(rt, *i, states); });
-    for (auto &&i : cld_)
-      ::draw(rt, *i, states);
-  }
-};
-
-template <mouse_handler MH> class Button : public Component {
-  enum e_states { D, P, R, H };
-  std::map<e_states, std::string> state_string = {
-      {D, "default"}, {P, "pressed"}, {R, "released"}, {H, "hovered"}};
-
-  struct changed final {
-  private:
-    bool check = false;
-    e_states val;
-
-  public:
-    changed &operator=(e_states &&x) { val = x, check = true; }
-    operator bool() {
-      auto tmp = check;
-      check = false;
-      return tmp;
-    }
-    e_states get() { return val; }
-  };
-  changed cur_state;
-
-public:
-  MH mh_;
-  std::function<void()> rls_;
-  CharacterAnimation anim_;
-  sf::IntRect rect_;
-  Button(MH mh, std::function<void()> rls, const CharacterAnimation &anim,
-         const sf::IntRect &rect)
-      : mh_(mh), rls_(rls), anim_(anim), rect_(rect) {
-    anim_.select_anim("default");
-    anim_.restart();
-  }
-  inline bool contains() { return rect_.contains(mh_()); }
-  bool update(sf::Time dt) override {
-    bool b = cur_state;
-
-    switch (cur_state.get()) {
-    case D:
-      if (contains())
-        cur_state = H;
-      break;
-    case H:
-      if (!contains())
-        cur_state = D;
-      break;
-    case R:
-      if (anim_.finished())
-        cur_state = D;
-    default:
-      break;
-    }
-
-    if (static_cast<bool>(cur_state)) {
-      anim_.select_anim(state_string[cur_state.get()]);
-      anim_.restart();
-    }
-    return true;
-  }
-  bool handleEvent(const sf::Event &ev) override {
-    bool b = cur_state;
-    if (ev.type == sf::Event::MouseButtonPressed)
-      switch (cur_state.get()) {
-      case D:
-      case H:
-        if (contains())
-          cur_state = P;
-        break;
-      default:
-        break;
-      }
-    if (ev.type == sf::Event::MouseButtonReleased)
-      switch (cur_state.get()) {
-      case P:
-        cur_state = R;
-      default:
-        break;
-      }
-    if (static_cast<bool>(cur_state)) {
-      anim_.select_anim(state_string[cur_state.get()]);
-      anim_.restart();
-    }
-    return true;
-  }
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override {
-    ::draw(target, anim_, states);
-  }
-};
-
-} // namespace GUI
 
 struct Mehehenu : Scene {
   sf::View view_{};
@@ -187,7 +49,6 @@ struct Mehehenu : Scene {
     return sf::Mouse::getPosition();
   };
 
-  GUI::Button<decltype(ml)> btn{ml, [] {}, CharacterAnimation({}, {}), {}};
 
   MusicField mf{"audio/goofy.ogg"};
   Mehehenu(SceneCompose &cmp, sf::RenderWindow &win) : Scene(cmp), window(win) {
@@ -308,7 +169,7 @@ struct Menu : Scene {
 
 int main() {
   auto window = sf::RenderWindow{sf::VideoMode(1920, 1080), "Test Manager",
-                                 sf::Style::Titlebar | sf::Style::Close};
+                               sf::Style::Titlebar | sf::Style::Close};
   sf::Clock clock;
   SceneCompose scmp = SceneCompose();
   scmp.pending_push<Menu>(window);

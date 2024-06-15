@@ -17,9 +17,7 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <concepts>
-#include <future>
 #include <iostream>
-#include <latch>
 #include <mutex>
 #include <random>
 #include <thread>
