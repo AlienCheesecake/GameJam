@@ -1,125 +1,14 @@
+#include "gmui/button.hh"
 #include "mmedia/Animator.hh"
 #include "mmedia/draw.hh"
 #include "scdc/scene_compose.hh"
 #include <SFML/Graphics.hpp>
-#include <SFML/Graphics/RectangleShape.hpp>
-#include <SFML/Graphics/RenderStates.hpp>
-#include <SFML/Graphics/RenderTarget.hpp>
-#include <SFML/System/Time.hpp>
+#include <SFML/Graphics/Transformable.hpp>
 #include <SFML/System/Vector2.hpp>
-#include <SFML/Window/Event.hpp>
-#include <cstdarg>
 #include <functional>
 #include <iostream>
 
-namespace GUI {
-struct Component : sf::Transformable, sf::Drawable {
-  using ptr = std::shared_ptr<Component>;
-  virtual bool handleEvent(const sf::Event &, const sf::Vector2f &pos) = 0;
-  virtual bool update(sf::Time, const sf::Vector2f &pos) = 0;
-  virtual void draw(sf::RenderTarget &target,
-                    sf::RenderStates states) const = 0;
-  virtual ~Component() = default;
-};
-template <typename T>
-concept component_child = std::derived_from<T, Component>;
-class Button : public Component {
-  enum e_states { D, P, R, H };
-  std::map<e_states, std::string> state_string = {
-      {D, "default"}, {P, "pressed"}, {R, "released"}, {H, "hovered"}};
-
-  struct changed final {
-  private:
-    bool check = false;
-    e_states val = D;
-
-  public:
-    changed &operator=(e_states &&x) {
-      val = x, check = true;
-      return *this;
-    }
-    operator bool() {
-      auto tmp = check;
-      check = false;
-      return tmp;
-    }
-    e_states get() { return val; }
-  };
-  changed cur_state;
-
-public:
-  std::function<void()> prs_, rls_;
-  mmed::CharacterAnimation anim_;
-  sf::RectangleShape rect_;
-  Button(std::function<void()> prs, std::function<void()> rls,
-         const mmed::CharacterAnimation &anim, const sf::RectangleShape &rect)
-      : prs_(prs), rls_(rls), anim_(anim), rect_(rect) {
-    anim_.select_anim("default");
-    anim_.restart();
-  }
-  inline bool contains(const sf::Vector2f &p) {
-    auto [px, py] = p;
-    auto transform = getInverseTransform();
-    auto [x, y] = transform.transformPoint(px, py);
-    return rect_.getGlobalBounds().contains(x, y);
-  }
-  bool update(sf::Time dt, const sf::Vector2f &pos) override {
-    anim_.update(dt);
-    bool b = cur_state;
-
-    switch (cur_state.get()) {
-    case D:
-      if (contains(pos))
-        cur_state = H;
-      break;
-    case H:
-      if (!contains(pos))
-        cur_state = D;
-      break;
-    case R:
-      if (anim_.finished())
-        rls_(), cur_state = D;
-    default:
-      break;
-    }
-
-    if (static_cast<bool>(cur_state)) {
-      anim_.select_anim(state_string[cur_state.get()]);
-      anim_.restart();
-    }
-    return true;
-  }
-  bool handleEvent(const sf::Event &ev, const sf::Vector2f &pos) override {
-    bool b = cur_state;
-    if (ev.type == sf::Event::MouseButtonPressed)
-      switch (cur_state.get()) {
-      case D:
-      case H:
-        if (contains(pos))
-          prs_(), cur_state = P;
-        break;
-      default:
-        break;
-      }
-    if (ev.type == sf::Event::MouseButtonReleased)
-      switch (cur_state.get()) {
-      case P:
-        cur_state = R;
-      default:
-        break;
-      }
-    if (static_cast<bool>(cur_state)) {
-      anim_.select_anim(state_string[cur_state.get()]);
-      anim_.restart();
-    }
-    return true;
-  }
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override {
-    states.transform *= getTransform();
-    ::draw(target, anim_, states);
-  }
-};
-} // namespace GUI
+using namespace mmed::gmui;
 
 struct FollowAnim {
   mmed::CharacterAnimation anim;
@@ -149,11 +38,11 @@ template <typename T> struct BoolDrawable {
   }
 };
 
-class DD : public GUI::Component {
-  GUI::Button btn_;
+class DD : public Component {
   BoolDrawable<FollowAnim> flw_anim;
 
 public:
+  Button btn_;
   DD(
       const mmed::CharacterAnimation &btn_anim, const sf::RectangleShape &rs,
       const mmed::CharacterAnimation &anim, std::function<void()> prs = [] {},
@@ -175,6 +64,9 @@ public:
     auto [px, py] = p;
     auto transform = getInverseTransform();
     return transform.transformPoint(px, py);
+  }
+  mmed::CharacterAnimation &follow_animation() {
+    return flw_anim.t.anim;
   }
   bool update(sf::Time dt, const sf::Vector2f &pos) override {
     btn_.update(dt, inner_pos(pos));
@@ -214,7 +106,7 @@ struct MenuScene : scdc::Scene {
     ~tmp_view() { win_.setView(win_.getDefaultView()); }
   };
 
-  GUI::Button btn;
+  Button btn;
   DD dd;
   MenuScene(scdc::SceneCompose &sc, sf::RenderWindow &win)
       : scdc::Scene(sc), win_(win),
@@ -229,6 +121,8 @@ struct MenuScene : scdc::Scene {
                 {mmed::Animation::one_frame_anim("follow", "images/start.png")},
                 {}},
             [] { std::cout << "Foo\n"; }, [] { std::cout << "Bar\n"; }) {
+    dd.follow_animation().sp_.setScale(.5, .5);
+    dd.btn_.setScale(3, 3);
     view.setViewport({.25, .25, .5, .5});
     btn.move(120, 100);
     btn.rotate(-30);

@@ -1,6 +1,7 @@
 set(LIBLIST
   mmedia
   scdc
+  gmui
 )
 
 foreach(LIB ${LIBLIST})

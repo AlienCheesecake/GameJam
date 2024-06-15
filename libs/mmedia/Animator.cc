@@ -23,7 +23,7 @@ AnimationManager &AnimationManager::getInstance() {
   return am;
 }
 
-void AnimationManager::loadFile(std::string_view file_name) {
+void AnimationManager::loadFile(const std::string_view file_name) {
   nlohmann::json j;
   auto fin = std::ifstream("animations.json");
   fin >> j;
@@ -82,7 +82,7 @@ CharacterAnimation::CharacterAnimation(const std::vector<Animation> &anims,
                                        const sf::Sprite &sp)
     : Animator(sp, {}), anims_(anims) {}
 
-void CharacterAnimation::select_anim(std::string_view name) {
+void CharacterAnimation::select_anim(const std::string_view name) {
   auto fnd = std::find_if(anims_.begin(), anims_.end(),
                           [name](auto &&i) { return name == i.name; });
   if (fnd == anims_.end())
