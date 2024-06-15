@@ -62,30 +62,32 @@ struct Menu2 : scdc::Scene {
       },
       {}};
 
-  mmed::CharacterAnimation start_follow = {
-      {mmed::Animation::one_frame_anim("follow", "images/start.png")}, {}};
-
-  mmed::CharacterAnimation exit_follow = {
-      {mmed::Animation::one_frame_anim("follow", "images/exit.png")}, {}};
+  BoolDrawable<mmed::CharacterAnimation> follow = {
+      {{mmed::Animation::one_frame_anim("start", "images/start.png"),
+        mmed::Animation::one_frame_anim("exit", "images/exit.png")},
+       {}},
+      false};
 
   bool move = false;
 
 #if 1
   Container menu = {
       {Component::ptr{
-           new DD(button_anim, sf::RectangleShape({100, 50}), start_follow)},
+           new DD(button_anim, sf::RectangleShape({100, 50}), follow, "start")},
        Component::ptr{
-           new DD(button_anim, sf::RectangleShape({100, 50}), exit_follow)},
-       Component::ptr(new Button([this] { move = true;  },
-                                 [this] {move = false; std::cout << "Foo" << std::endl; },
+           new DD(button_anim, sf::RectangleShape({100, 50}), follow, "exit")},
+       Component::ptr(new Button([this] { move = true; },
+                                 [this] {
+                                   move = false;
+                                   std::cout << "Foo" << std::endl;
+                                 },
                                  button_anim, sf::RectangleShape{{100, 50}}))}};
 #endif
 
   Menu2(scdc::SceneCompose &sc, sf::RenderWindow &win)
       : scdc::Scene(sc), win_(win) {
 #if 1
-    static_cast<DD&>(*menu.cld[0]).follow_animation().sp_.setScale(.4, .4);
-    static_cast<DD&>(*menu.cld[1]).follow_animation().sp_.setScale(.4, .4);
+    follow.t.sp_.setScale(.4, .4);
     for (size_t i = 0; i < 3; ++i) {
       menu.cld[i]->setPosition({0, (float)(i * 60)});
     }
@@ -97,19 +99,14 @@ struct Menu2 : scdc::Scene {
   }
   void draw() override {
     ::draw(win_, menu);
-    static_cast<DD &>(*menu.cld[0])
-        .follow_draw(win_, sf::RenderStates::Default);
-    static_cast<DD &>(*menu.cld[1])
-        .follow_draw(win_, sf::RenderStates::Default);
+    ::draw(win_, follow);
   }
   bool update(sf::Time dt) override {
     if (move)
       menu.move({0, 0.005});
     menu.update(dt, world_pos());
-    static_cast<DD &>(*menu.cld[0])
-        .follow_update(dt, world_pos());
-    static_cast<DD &>(*menu.cld[1])
-        .follow_update(dt, world_pos());
+    follow.update(dt);
+    follow.t.sp_.setPosition(world_pos());
     return false;
   }
   bool handleEvent(const sf::Event &event) override {
@@ -126,6 +123,13 @@ struct MenuScene : scdc::Scene {
       mmed::AnimationManager::getAnimation("b1_2"),
       mmed::AnimationManager::getAnimation("b1_d"),
   };
+
+  BoolDrawable<mmed::CharacterAnimation> follow = {
+      {{mmed::Animation::one_frame_anim("start", "images/start.png"),
+        mmed::Animation::one_frame_anim("exit", "images/exit.png")},
+       {}},
+      false};
+
   sf::RenderWindow &win_;
 
   Button btn;
@@ -141,13 +145,9 @@ struct MenuScene : scdc::Scene {
             sf::RectangleShape{{100, 50}}},
         dd(
             mmed::CharacterAnimation{button_anim, {}},
-            sf::RectangleShape{{100, 50}},
-            mmed::CharacterAnimation{
-                {mmed::Animation::one_frame_anim("follow", "images/start.png")},
-                {}},
-            [] { std::cout << "Foo\n"; }, [] { std::cout << "Bar\n"; }) {
-    dd.follow_animation().sp_.setScale(.5, .5);
-    dd.btn_.setScale(3, 3);
+            sf::RectangleShape{{100, 50}}, follow, "start", [] { std::cout << "Foo\n"; },
+            [] { std::cout << "Bar\n"; }) {
+    follow.t.sp_.setScale(.5, .5);
     view.setViewport({.25, .25, .5, .5});
     btn.move(120, 100);
     btn.rotate(-30);
@@ -160,7 +160,7 @@ struct MenuScene : scdc::Scene {
       ::draw(win_, btn);
       ::draw(win_, dd);
     }
-    dd.follow_draw(win_, sf::RenderStates::Default);
+    ::draw(win_, follow);
   }
   sf::Vector2f world_pos() {
     sf::Vector2i pixelPos = sf::Mouse::getPosition(win_);
@@ -172,7 +172,8 @@ struct MenuScene : scdc::Scene {
       btn.update(dt, world_pos());
       dd.update(dt, world_pos());
     }
-    dd.follow_update(dt, world_pos());
+    follow.update(dt);
+    follow.t.sp_.setPosition(world_pos());
     return true;
   }
   bool handleEvent(const sf::Event &event) override {
