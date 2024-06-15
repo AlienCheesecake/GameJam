@@ -2,6 +2,8 @@
 #include "mmedia/draw.hh"
 #include "scdc/scene_compose.hh"
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Rect.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Clock.hpp>
@@ -39,6 +41,7 @@ struct Container : public Component {
                        [&ev](auto &&i) { return i->handleEvent(ev); });
   }
   void draw(sf::RenderTarget &rt, sf::RenderStates states) const override {
+    states.transform *= getTransform();
     for (auto &&i : cld_)
       ::draw(rt, *i, states);
   }
@@ -72,14 +75,19 @@ public:
   std::function<sf::Vector2i()> mh_;
   std::function<void()> rls_;
   mmed::CharacterAnimation anim_;
-  sf::IntRect rect_;
+  sf::RectangleShape rect_;
   Button(std::function<sf::Vector2i()> mh, std::function<void()> rls,
-         const mmed::CharacterAnimation &anim, const sf::IntRect &rect)
+         const mmed::CharacterAnimation &anim, const sf::RectangleShape &rect)
       : mh_(mh), rls_(rls), anim_(anim), rect_(rect) {
     anim_.select_anim("default");
     anim_.restart();
   }
-  inline bool contains() { return rect_.contains(mh_()); }
+  inline bool contains() {
+    auto [px, py] = mh_();
+    auto transform = getInverseTransform();
+    auto [x, y] = transform.transformPoint(px, py);
+    return rect_.getGlobalBounds().contains(x, y);
+  }
   bool update(sf::Time dt) override {
     anim_.update(dt);
     bool b = cur_state;
@@ -132,6 +140,7 @@ public:
     return true;
   }
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override {
+    states.transform *= getTransform();
     ::draw(target, anim_, states);
   }
 };
@@ -150,14 +159,17 @@ struct MenuScene : scdc::Scene {
   std::function<sf::Vector2i()> get_pos() {
     return [this]() { return sf::Mouse::getPosition(win_); };
   }
-  
+
   GUI::Button btn;
   MenuScene(scdc::SceneCompose &sc, sf::RenderWindow &win)
       : scdc::Scene(sc), win_(win),
         btn{get_pos(),
             [] { std::cout << "Foo" << std::endl; },
             mmed::CharacterAnimation(button_anim, {}),
-            {0, 0, 100, 100}} {}
+            sf::RectangleShape{{100, 50}}} {
+    btn.rect_.setPosition(-100, -50);
+    btn.move(100, 50);
+  }
 
   void draw() override { ::draw(win_, btn); }
   bool update(sf::Time dt) override {

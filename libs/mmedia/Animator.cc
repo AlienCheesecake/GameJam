@@ -7,7 +7,6 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include <tuple>
 
 using namespace mmed;
 
