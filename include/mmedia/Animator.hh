@@ -41,6 +41,7 @@ public:
   void update(sf::Time dt);
   void restart();
   void stop();
+  bool finished() const;
 };
 
 struct CharacterAnimation : private Animator {
@@ -51,6 +52,7 @@ struct CharacterAnimation : private Animator {
   using Animator::sp_;
   using Animator::stop;
   using Animator::update;
+  using Animator::finished;
 };
 
 mmed::Animation one_frame_anim();

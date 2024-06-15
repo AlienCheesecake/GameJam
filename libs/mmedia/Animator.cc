@@ -90,6 +90,9 @@ void CharacterAnimation::select_anim(std::string_view name) {
     throw std::invalid_argument("Animation not found");
   switchAnimation(*fnd);
 }
+bool Animator::finished() const {
+  return end_anim;
+}
 
 void draw(sf::RenderTarget &rt, const Animator &anim, sf::RenderStates st) {
   ::draw(rt, anim.sp_, st);

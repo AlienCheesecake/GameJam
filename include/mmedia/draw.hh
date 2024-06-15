@@ -1,5 +1,4 @@
 #pragma once
-#include "Animator.hh"
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
@@ -34,7 +33,7 @@ void draw(sf::RenderTarget &rt, T &&t, sf::RenderStates rs = sf::RenderStates::D
 }
 
 template<typename T>
-requires (!t_draw_without_states<T> && rt_draw<T>)
+requires (!t_draw_with_states<T> && !t_draw_without_states<T> && rt_draw<T>)
 void draw(sf::RenderTarget &rt, T &&t, sf::RenderStates rs = sf::RenderStates::Default) {
   rt.draw(t, rs);
 }
