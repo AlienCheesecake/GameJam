@@ -65,4 +65,9 @@ public:
   void draw();
   void update(sf::Time dt);
 };
+struct tmp_view final {
+  sf::RenderWindow &win_;
+  tmp_view(sf::RenderWindow &win, const sf::View &view);
+  ~tmp_view();
+};
 } // namespace scdc

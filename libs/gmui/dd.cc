@@ -37,9 +37,8 @@ sf::Vector2f DD::inner_pos(const sf::Vector2f &p) {
   return transform.transformPoint(px, py);
 }
 
-bool DD::update(sf::Time dt, const sf::Vector2f &pos) {
+void DD::update(sf::Time dt, const sf::Vector2f &pos) {
   btn_.update(dt, inner_pos(pos));
-  return true;
 }
 
 bool DD::follow_update(sf::Time dt, const sf::Vector2f &pos) {
@@ -49,11 +48,12 @@ bool DD::follow_update(sf::Time dt, const sf::Vector2f &pos) {
 }
 
 bool DD::handleEvent(const sf::Event &ev, const sf::Vector2f &pos) {
-  btn_.handleEvent(ev, pos);
+  btn_.handleEvent(ev, inner_pos(pos));
   return true;
 }
 
 void DD::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+  states.transform *= getTransform();
   ::draw(target, btn_, states);
 }
 

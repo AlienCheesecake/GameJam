@@ -33,12 +33,12 @@ Button::Button(std::function<void()> prs, std::function<void()> rls,
 
 bool Button::contains(const sf::Vector2f &p) {
   auto [px, py] = p;
-  auto transform = getInverseTransform();
+  auto &&transform = getInverseTransform();
   auto [x, y] = transform.transformPoint(px, py);
   return rect_.getGlobalBounds().contains(x, y);
 }
 
-bool Button::update(sf::Time dt, const sf::Vector2f &pos) {
+void Button::update(sf::Time dt, const sf::Vector2f &pos) {
   anim_.update(dt);
   bool b = cur_state;
 
@@ -62,7 +62,6 @@ bool Button::update(sf::Time dt, const sf::Vector2f &pos) {
     anim_.select_anim(state_string.at(cur_state.get()));
     anim_.restart();
   }
-  return true;
 }
 
 bool Button::handleEvent(const sf::Event &ev, const sf::Vector2f &pos) {

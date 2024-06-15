@@ -47,3 +47,9 @@ void SceneCompose::update(sf::Time dt) {
 }
 
 bool SceneCompose::empty() const noexcept { return scenes_.empty(); }
+
+
+tmp_view::tmp_view(sf::RenderWindow &win, const sf::View &view) : win_(win) {
+  win.setView(view);
+}
+tmp_view::~tmp_view() { win_.setView(win_.getDefaultView()); }

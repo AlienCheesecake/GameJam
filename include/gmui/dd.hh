@@ -38,7 +38,7 @@ public:
       std::function<void()> rls = [] {});
   sf::Vector2f inner_pos(const sf::Vector2f &p);
   mmed::CharacterAnimation &follow_animation() { return flw_anim.t.anim; }
-  bool update(sf::Time dt, const sf::Vector2f &pos) override;
+  void update(sf::Time dt, const sf::Vector2f &pos) override;
   bool follow_update(sf::Time dt, const sf::Vector2f &pos);
   bool handleEvent(const sf::Event &ev, const sf::Vector2f &pos) override;
   void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
