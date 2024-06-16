@@ -38,6 +38,7 @@ public:
   sf::Sprite sp_;
   Animator(const sf::Sprite &sp, const Animation &anim = {});
   void switchAnimation(const Animation &anim);
+  Animation getAnimation() const noexcept;
   void update(sf::Time dt);
   void restart();
   void stop();
@@ -53,6 +54,7 @@ struct CharacterAnimation : private Animator {
   using Animator::stop;
   using Animator::update;
   using Animator::finished;
+  using Animator::getAnimation;
 };
 
 mmed::Animation one_frame_anim();

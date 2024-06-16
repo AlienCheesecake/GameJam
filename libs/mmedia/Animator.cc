@@ -57,6 +57,9 @@ void Animator::switchAnimation(const Animation &anim) {
   if (!anim.texture_path.empty())
     sp_.setTexture(AssetManager::getTexture(anim.texture_path));
 }
+Animation Animator::getAnimation() const noexcept{
+  return anim_;
+}
 void Animator::update(sf::Time dt) {
   if (anim_.texture_path.empty())
     return;
