@@ -101,6 +101,10 @@ struct Container : Component {
 
 struct Menu2 : scdc::Scene {
   // MusicPauseField mpf;
+  BeginLoopMusicField mf {
+    "audio/piano_main_menu_begin.ogg",
+    "audio/piano_main_menu_loop.ogg"
+  };
   sf::RenderWindow &win_;
 
   mmed::CharacterAnimation button_anim = {
