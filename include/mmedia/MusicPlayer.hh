@@ -15,6 +15,8 @@ public:
   using sf::Music::stop;
   using sf::Music::setVolume;
   using sf::Music::setPitch;
+  using sf::Music::setLoop;
+  using sf::Music::getStatus;
   
   void play(const std::string_view path);
   void set_pause(bool is_pause);

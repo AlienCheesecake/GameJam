@@ -2,6 +2,7 @@
 #include "gmui/component.hh"
 #include "gmui/dd.hh"
 #include "mmedia/Animator.hh"
+#include "mmedia/MusicPlayer.hh"
 #include "mmedia/draw.hh"
 #include "scdc/scene_compose.hh"
 #include <SFML/Graphics.hpp>
@@ -14,9 +15,57 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
+#include <mutex>
 #include <vector>
+#include <thread>
 
 using namespace mmed::gmui;
+using namespace mmed;
+
+struct BeginLoopMusicField {
+  bool was_paused;
+  std::string loop_path_, begin_path_, prev_path_;
+  std::jthread thr_dj;
+  // mutable std::mutex mtx;
+  std::atomic_bool end_thread = false;
+
+  void dj_thread() {
+    auto &&mp = MusicPlayer::getInstance();
+    {
+      // std::lock_guard lk{mtx};
+      std::cout << "Begin part\n";
+      prev_path_ = mp.path();
+      was_paused = mp.paused();
+      mp.set_pause(false);
+      mp.play(begin_path_);
+      mp.setLoop(false);
+    }
+    for (;;) {
+      // std::lock_guard lk{mtx};
+      if (mp.getStatus() != sf::Music::Status::Playing || end_thread)
+        break;
+    }
+    {
+      // std::lock_guard lk{mtx};
+      std::cout << "The loop part\n";
+      mp.play(loop_path_);
+      mp.setLoop(true);
+    }
+  }
+
+  BeginLoopMusicField(const std::string_view begin_path,
+                      const std::string_view loop_path)
+      : begin_path_(begin_path), loop_path_(loop_path),
+        thr_dj([this] { dj_thread(); }) {}
+  ~BeginLoopMusicField() {
+    end_thread = true;
+    thr_dj.join();
+    // std::lock_guard lk{mtx};
+    auto &&mp = MusicPlayer::getInstance();
+    mp.set_pause(was_paused);
+    mp.play(prev_path_);
+  }
+};
 
 namespace mmed::gmui {
 struct Container : Component {
@@ -51,6 +100,7 @@ struct Container : Component {
 } // namespace mmed::gmui
 
 struct Menu2 : scdc::Scene {
+  // MusicPauseField mpf;
   sf::RenderWindow &win_;
 
   mmed::CharacterAnimation button_anim = {
@@ -116,6 +166,8 @@ struct Menu2 : scdc::Scene {
 };
 
 struct MenuScene : scdc::Scene {
+  BeginLoopMusicField mf{"audio/main_menu_begin.ogg",
+                         "audio/main_menu_loop.ogg"};
   sf::View view;
   std::vector<mmed::Animation> button_anim = {
       mmed::AnimationManager::getAnimation("b1_0"),
@@ -145,8 +197,8 @@ struct MenuScene : scdc::Scene {
             sf::RectangleShape{{100, 50}}},
         dd(
             mmed::CharacterAnimation{button_anim, {}},
-            sf::RectangleShape{{100, 50}}, follow, "start", [] { std::cout << "Foo\n"; },
-            [] { std::cout << "Bar\n"; }) {
+            sf::RectangleShape{{100, 50}}, follow, "start",
+            [] { std::cout << "Foo\n"; }, [] { std::cout << "Bar\n"; }) {
     follow.t.sp_.setScale(.5, .5);
     view.setViewport({.25, .25, .5, .5});
     btn.move(120, 100);

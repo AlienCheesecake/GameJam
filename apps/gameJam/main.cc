@@ -4,6 +4,7 @@
 #include "mmedia/draw.hh"
 #include "scdc/scene_compose.hh"
 #include <SFML/Audio.hpp>
+#include <SFML/Audio/Music.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Drawable.hpp>
@@ -18,12 +19,64 @@
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <iterator>
+#include <latch>
+#include <mutex>
 #include <nlohmann/json.hpp>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 using namespace scdc;
 using namespace mmed;
+
+struct BeginLoopMusicField {
+  bool was_paused;
+  std::string loop_path_, begin_path_, prev_path_;
+  mutable std::mutex mtx_;
+  std::jthread thr_begin, thr_loop;
+  std::latch await_latch{1};
+
+  void await_begin_end() {
+    for (;;) {
+      std::lock_guard lk(mtx_);
+      auto &&mp = MusicPlayer::getInstance().getStatus();
+      if (mp != sf::Music::Status::Playing)
+        break;
+    }
+    {
+      std::lock_guard lk{mtx_};
+      await_latch.count_down();
+    }
+  }
+
+  void begin_loop() {
+    await_latch.wait();
+    {
+      std::lock_guard lk{mtx_};
+      auto &&mp = MusicPlayer::getInstance();
+      mp.play(loop_path_);
+      mp.setLoop(true);
+    }
+  }
+
+  BeginLoopMusicField(const std::string_view begin_path,
+                      const std::string_view loop_path)
+      : begin_path_(begin_path), loop_path_(loop_path),
+        thr_begin([this] { await_begin_end(); }),
+        thr_loop([this] { begin_loop(); }) {
+    auto &&mp = MusicPlayer::getInstance();
+    prev_path_ = mp.path();
+    was_paused = mp.paused();
+    mp.set_pause(false);
+    mp.play(begin_path);
+    mp.setLoop(false);
+  }
+  ~BeginLoopMusicField() {
+    auto &&mp = MusicPlayer::getInstance();
+    mp.set_pause(was_paused);
+    mp.play(prev_path_);
+  }
+};
 
 struct Mehehenu : Scene {
   sf::View view_{};
@@ -48,7 +101,6 @@ struct Mehehenu : Scene {
   inline static auto ml = []() -> sf::Vector2i {
     return sf::Mouse::getPosition();
   };
-
 
   MusicField mf{"audio/goofy.ogg"};
   Mehehenu(SceneCompose &cmp, sf::RenderWindow &win) : Scene(cmp), window(win) {
@@ -117,7 +169,9 @@ struct Menu : Scene {
   std::vector<sf::CircleShape> circles;
   std::vector<sf::Drawable *> test;
 
-  MusicField mf{"audio/sleep.ogg"};
+  // MusicField mf{"audio/sleep.ogg"};
+  BeginLoopMusicField mf{"audio/main_menu_begin.ogg",
+                         "audio/main_menu_loop.ogg"};
   Menu(SceneCompose &cmp, sf::RenderWindow &win) : Scene(cmp), window(win) {
     for (size_t i = 0; i < 5; ++i) {
       circles.emplace_back(i * 50);
@@ -169,7 +223,7 @@ struct Menu : Scene {
 
 int main() {
   auto window = sf::RenderWindow{sf::VideoMode(1920, 1080), "Test Manager",
-                               sf::Style::Titlebar | sf::Style::Close};
+                                 sf::Style::Titlebar | sf::Style::Close};
   sf::Clock clock;
   SceneCompose scmp = SceneCompose();
   scmp.pending_push<Menu>(window);
