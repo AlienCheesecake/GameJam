@@ -132,6 +132,177 @@
         255
       ],
       "isLoop": true
+    },
+    {
+      "id_name": "b_w_r",
+      "name": "b_w_r",
+      "texture_path": "images/butterfly walks.png",
+      "total_frame": 15,
+      "columns": 4,
+      "frame_size": [
+        145,
+        244
+      ],
+      "duration": 2,
+      "mask_color": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "isLoop": true
+    },
+    {
+      "id_name": "b_w_l",
+      "name": "b_w_l",
+      "texture_path": "images/butterfly walks left.png",
+      "total_frame": 15,
+      "columns": 4,
+      "frame_size": [
+        145,
+        244
+      ],
+      "duration": 2,
+      "mask_color": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "isLoop": true
+    },
+    {
+      "id_name": "ants",
+      "name": "ants",
+      "texture_path": "images/ants.png",
+      "total_frame": 10,
+      "columns": 4,
+      "frame_size": [
+        1468,
+        1392
+      ],
+      "duration": 1.5,
+      "mask_color": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "isLoop": true
+    },
+    {
+      "id_name": "b_r_ltr",
+      "name": "b_r_ltr",
+      "texture_path": "images/butterfly rotate left to right.png",
+      "total_frame": 6,
+      "columns": 3,
+      "frame_size": [
+        148,
+        252
+      ],
+      "duration": 1,
+      "mask_color": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "isLoop": false
+    },
+    {
+      "id_name": "b_r_rtl",
+      "name": "b_r_rtl",
+      "texture_path": "images/butterfly rotate right to left.png",
+      "total_frame": 6,
+      "columns": 3,
+      "frame_size": [
+        148,
+        252
+      ],
+      "duration": 1,
+      "mask_color": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "isLoop": false
+    },
+    {
+      "id_name": "b_r_l",
+      "name": "b_r_l",
+      "texture_path": "images/butterfly rotate left.png",
+      "total_frame": 3,
+      "columns": 2,
+      "frame_size": [
+        148,
+        252
+      ],
+      "duration": 0.5,
+      "mask_color": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "isLoop": false
+    },
+    {
+      "id_name": "b_r_r",
+      "name": "b_r_r",
+      "texture_path": "images/butterfly rotate right.png",
+      "total_frame": 3,
+      "columns": 2,
+      "frame_size": [
+        148,
+        252
+      ],
+      "duration": 0.5,
+      "mask_color": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "isLoop": false
+    },
+    {
+      "id_name": "b_s",
+      "name": "b_s",
+      "texture_path": "images/butterfly static.png",
+      "total_frame": 4,
+      "columns": 2,
+      "frame_size": [
+        150,
+        252
+      ],
+      "duration": 0.5,
+      "mask_color": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "isLoop": false
+    },
+    {
+      "id_name": "b",
+      "name": "b",
+      "texture_path": "images/butterfly sprite.png",
+      "total_frame": 1,
+      "columns": 1,
+      "frame_size": [
+        150,
+        252
+      ],
+      "duration": 1,
+      "mask_color": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "isLoop": false
     }
   ]
 }

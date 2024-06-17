@@ -1,7 +1,7 @@
 set(APPLIST
-  # animationView
-  # gameJam
-  # sceneDecomposition
+  animationView
+  gameJam
+  sceneDecomposition
   menu_test
 )
 
