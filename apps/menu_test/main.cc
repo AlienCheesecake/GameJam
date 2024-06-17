@@ -81,20 +81,19 @@ struct MusicQueue {
   template <typename Iter>
     requires std::same_as<MusicDef,
                           typename std::iterator_traits<Iter>::value_type>
-  MusicQueue(Iter fst, Iter lst) {
-    for (; fst != lst; ++fst)
-      queue.push(*fst);
+  MusicQueue(Iter fst, Iter lst) : queue(fst, lst) {
     play_front();
   }
   MusicQueue(std::initializer_list<MusicDef> il) : queue(il) { play_front(); }
   void update() {
     if (plr.getStatus() == sf::Music::Stopped && !queue.empty()) {
-      play_front();
       queue.pop();
+      play_front();
     }
   }
 
   void play_front() {
+    if (queue.empty()) return;
     auto &&tmp = queue.front();
     plr.play(tmp.path);
     plr.setLoop(tmp.is_loop);
@@ -113,17 +112,17 @@ struct MusicStackOfQueues {
   void push(MusicQueue &&q) {
     stack.push(q);
     auto &&plr = MusicPlayer::getInstance();
-    plr.stop();
+    stack.top().play_front();
   }
   void push(const MusicQueue &q) {
     stack.push(q);
     auto &&plr = MusicPlayer::getInstance();
-    plr.stop();
+    stack.top().play_front();
   }
   template <typename... Args> void emplace(Args &&...args) {
     stack.emplace(std::forward<Args>(args)...);
     auto &&plr = MusicPlayer::getInstance();
-    plr.stop();
+    stack.top().play_front();
   }
   void pop() {
     // if (!stack.empty())
