@@ -2,7 +2,6 @@
 #include "gmui/component.hh"
 #include "gmui/dd.hh"
 #include "mmedia/Animator.hh"
-#include "mmedia/MusicPlayer.hh"
 #include "mmedia/draw.hh"
 #include "scdc/scene_compose.hh"
 #include <SFML/Audio/Music.hpp>
@@ -14,195 +13,14 @@
 #include <SFML/Graphics/Transformable.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <algorithm>
-#include <concepts>
 #include <functional>
 #include <initializer_list>
 #include <iostream>
-#include <iterator>
-#include <queue>
-#include <stack>
 #include <vector>
+#include "mmedia/MusicStackOfQueues.hh"
 
 using namespace mmed::gmui;
 using namespace mmed;
-
-#if 0
-struct BeginLoopMusicField {
-  bool was_paused;
-  std::string loop_path_, begin_path_, prev_path_;
-  std::jthread thr_dj;
-  // mutable std::mutex mtx;
-  std::atomic_bool end_thread = false;
-
-  void dj_thread() {
-    auto &&mp = MusicPlayer::getInstance();
-    {
-      // std::lock_guard lk{mtx};
-      std::cout << "Begin part\n";
-      prev_path_ = mp.path();
-      was_paused = mp.paused();
-      mp.set_pause(false);
-      mp.play(begin_path_);
-      mp.setLoop(false);
-    }
-    for (;;) {
-      // std::lock_guard lk{mtx};
-      if (mp.getStatus() != sf::Music::Status::Playing || end_thread)
-        break;
-    }
-    {
-      // std::lock_guard lk{mtx};
-      std::cout << "The loop part\n";
-      mp.play(loop_path_);
-      mp.setLoop(true);
-    }
-  }
-
-  BeginLoopMusicField(const std::string_view begin_path,
-                      const std::string_view loop_path)
-      : begin_path_(begin_path), loop_path_(loop_path),
-        thr_dj([this] { dj_thread(); }) {}
-  ~BeginLoopMusicField() {
-    end_thread = true;
-    thr_dj.join();
-    // std::lock_guard lk{mtx};
-    auto &&mp = MusicPlayer::getInstance();
-    mp.set_pause(was_paused);
-    mp.play(prev_path_);
-  }
-};
-#endif
-struct MusicDef {
-  std::string path;
-  bool is_loop;
-};
-
-struct MusicQueue {
-  template <typename Iter>
-    requires std::same_as<MusicDef,
-                          typename std::iterator_traits<Iter>::value_type>
-  MusicQueue(Iter fst, Iter lst) : queue(fst, lst) {
-    play_front();
-  }
-  MusicQueue(std::initializer_list<MusicDef> il) : queue(il) { play_front(); }
-  void update() {
-    if (plr.getStatus() == sf::Music::Stopped && !queue.empty()) {
-      queue.pop();
-      play_front();
-    }
-  }
-
-  void play_front() {
-    if (queue.empty()) return;
-    auto &&tmp = queue.front();
-    plr.play(tmp.path);
-    plr.setLoop(tmp.is_loop);
-  }
-
-private:
-  std::queue<MusicDef> queue;
-  mmed::MusicPlayer &plr = mmed::MusicPlayer::getInstance();
-};
-
-struct MusicStackOfQueues {
-  void update() {
-    if (!stack.empty())
-      stack.top().update();
-  }
-  void push(MusicQueue &&q) {
-    stack.push(q);
-    auto &&plr = MusicPlayer::getInstance();
-    stack.top().play_front();
-  }
-  void push(const MusicQueue &q) {
-    stack.push(q);
-    auto &&plr = MusicPlayer::getInstance();
-    stack.top().play_front();
-  }
-  template <typename... Args> void emplace(Args &&...args) {
-    stack.emplace(std::forward<Args>(args)...);
-    auto &&plr = MusicPlayer::getInstance();
-    stack.top().play_front();
-  }
-  void pop() {
-    // if (!stack.empty())
-      stack.pop();
-    if (!stack.empty())
-      stack.top().play_front();
-  }
-
-private:
-  std::stack<MusicQueue> stack;
-};
-
-struct NMusicField {
-  MusicStackOfQueues &sck;
-  NMusicField(MusicStackOfQueues &stack, std::initializer_list<MusicDef> il)
-      : sck(stack) {
-    stack.emplace(il);
-  }
-  ~NMusicField() { sck.pop(); }
-};
-
-#if 0
-struct MusicStack {
-  void push(std::string_view path, bool is_loop) {
-    stack.emplace(path, is_loop);
-  }
-
-  void push(const MusicDef &msc) { stack.push(msc); }
-  void push(MusicDef &&msc) { stack.push(msc); }
-
-  void pop() {
-    auto &&tmp = stack.top();
-    plr.play(tmp.path);
-    plr.setLoop(tmp.is_loop);
-
-    stack.pop();
-  }
-  
-  void update() {
-    if (plr.getStatus() != sf::Music::Status::Playing)
-      pop();
-  }
-
-private:
-  std::stack<MusicDef> stack;
-  MusicPlayer &plr = MusicPlayer::getInstance();
-};
-
-struct MusicStackField {
-  template <typename Iter>
-    requires std::same_as<MusicStack::MusicDef,
-                          typename std::iterator_traits<Iter>::value_type>
-  MusicStackField(MusicStack &stack, Iter fst, Iter lst) : stk(stack) {
-    size_t cnt = 0;
-    for (; fst != lst; ++fst, ++cnt)
-      stack.push(*fst);
-    stack.pop();
-    tracks_enqueued = --cnt;
-  }
-
-  MusicStackField(MusicStack &stack,
-                  std::initializer_list<MusicStack::MusicDef> il)
-      : stk(stack) {
-    size_t cnt = 0;
-    for (auto &&i : il)
-      stack.push(i);
-    stack.pop();
-    tracks_enqueued = --cnt;
-  }
-
-  ~MusicStackField() {
-    for (; tracks_enqueued != 0; --tracks_enqueued)
-      stk.pop();
-  }
-
-private:
-  size_t tracks_enqueued;
-  MusicStack &stk;
-};
-#endif
 
 namespace mmed::gmui {
 struct Container : Component {

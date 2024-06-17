@@ -5,6 +5,7 @@ set(SRCS
 AssetManager.cc
 Animator.cc
 MusicPlayer.cc
+MusicStackOfQueues.cc
 )
 
 find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
