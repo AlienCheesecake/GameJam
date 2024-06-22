@@ -44,7 +44,7 @@ bool DD::handleEvent(const sf::Event &ev, const sf::Vector2f &pos) {
   return true;
 }
 
-void DD::draw(sf::RenderTarget &target, sf::RenderStates states) const {
-  states.transform *= getTransform();
-  ::draw(target, btn_, states);
+void draw(sf::RenderTarget &target, const DD &t, sf::RenderStates states) {
+  states.transform *= t.getTransform();
+  ::draw(target, t.btn_, states);
 }

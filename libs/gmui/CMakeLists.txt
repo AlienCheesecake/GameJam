@@ -2,6 +2,8 @@ set(LIB
   gmui)
 
 set(SRCS
+  ListNode.cc
+  Node2D.cc
   button.cc
   dd.cc
 )

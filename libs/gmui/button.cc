@@ -90,7 +90,7 @@ bool Button::handleEvent(const sf::Event &ev, const sf::Vector2f &pos) {
   return true;
 }
 
-void Button::draw(sf::RenderTarget &target, sf::RenderStates states) const {
-  states.transform *= getTransform();
-  ::draw(target, anim_, states);
+void draw(sf::RenderTarget &target, const Button &btn, sf::RenderStates states) {
+  states.transform *= btn.getTransform();
+  ::draw(target, btn.anim_, states);
 }

@@ -1,11 +1,13 @@
 #pragma once
-#include "component.hh"
 #include "mmedia/Animator.hh"
+#include <SFML/Graphics/RenderStates.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/Transformable.hpp>
 #include <functional>
 
 namespace mmed {
 namespace gmui {
-struct Button : public Component {
+struct Button : sf::Transformable {
   enum e_states { D, P, R, H };
 
   struct changed final {
@@ -30,10 +32,10 @@ public:
   sf::RectangleShape rect_;
   Button(std::function<void()> prs, std::function<void()> rls,
          const mmed::CharacterAnimation &anim, const sf::RectangleShape &rect);
-  void update(sf::Time dt, const sf::Vector2f &pos) override;
-  bool handleEvent(const sf::Event &ev, const sf::Vector2f &pos) override;
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+  void update(sf::Time dt, const sf::Vector2f &pos);
+  bool handleEvent(const sf::Event &ev, const sf::Vector2f &pos);
 };
-
 } // namespace gmui
 } // namespace mmed
+
+void draw(sf::RenderTarget &target, const mmed::gmui::Button &btn, sf::RenderStates states=sf::RenderStates::Default);

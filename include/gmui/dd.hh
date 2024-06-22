@@ -2,6 +2,8 @@
 #include "button.hh"
 #include "mmedia/Animator.hh"
 #include "mmedia/draw.hh"
+#include <SFML/Graphics/RenderStates.hpp>
+#include <SFML/Graphics/Transformable.hpp>
 
 struct FollowAnim final {
   mmed::Animator anim;
@@ -35,7 +37,7 @@ template <typename T> struct BoolDrawable {
 };
 
 namespace mmed::gmui {
-class DD : public Component {
+class DD : public sf::Transformable {
 public:
   Button btn_;
   DD(
@@ -43,10 +45,11 @@ public:
       BoolDrawable<CharacterAnimation> &outsorce, std::string_view anim_name,
       std::function<void()> prs = [] {}, std::function<void()> rls = [] {});
   sf::Vector2f inner_pos(const sf::Vector2f &p);
-  void update(sf::Time dt, const sf::Vector2f &pos) override;
+  void update(sf::Time dt, const sf::Vector2f &pos);
   bool follow_update(sf::Time dt, const sf::Vector2f &pos);
-  bool handleEvent(const sf::Event &ev, const sf::Vector2f &pos) override;
-  void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+  bool handleEvent(const sf::Event &ev, const sf::Vector2f &pos);
   void follow_draw(sf::RenderTarget &target, sf::RenderStates states) const;
 };
 } // namespace mmed::gmui
+
+void draw(sf::RenderTarget &target, const mmed::gmui::DD &t, sf::RenderStates states = sf::RenderStates::Default);
