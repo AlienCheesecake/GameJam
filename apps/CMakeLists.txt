@@ -1,5 +1,5 @@
 set(APPLIST
-  animationView
+  # animationView
   # gameJam
   # sceneDecomposition
   menu_test

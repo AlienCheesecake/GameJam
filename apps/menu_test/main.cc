@@ -1,217 +1,132 @@
-#include "gmui/button.hh"
-#include "gmui/dd.hh"
 #include "mmedia/Animator.hh"
-#include "mmedia/MusicPlayer.hh"
-#include "mmedia/MusicStackOfQueues.hh"
 #include "mmedia/draw.hh"
-#include "scdc/scene_compose.hh"
-#include <SFML/Audio/Music.hpp>
-#include <SFML/Graphics.hpp>
-#include <SFML/Graphics/RectangleShape.hpp>
-#include <SFML/Graphics/RenderTarget.hpp>
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/Graphics/Sprite.hpp>
-#include <SFML/Graphics/Transformable.hpp>
-#include <SFML/System/Time.hpp>
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Window/Event.hpp>
-#include <functional>
-#include <initializer_list>
-#include <iostream>
-#include <vcruntime_typeinfo.h>
-#include <vector>
-#include "gmui/ListNode.hh"
 
-using namespace mmed::gmui;
-using namespace mmed;
+#include "scdc/scene_compose.hh"
+
+#include <SFML/Graphics/Glsl.hpp>
+#include <atomic>
+#include <chrono>
+#include <future>
+#include <iostream>
+#include <thread>
 
 struct Foo {
-  Foo() { std::cout << "Foo()\n"; }
-  ~Foo() { std::cout << "~Foo()\n"; }
-  Foo(Foo &&) { std::cout << "Foo(&&)\n"; }
-  Foo(const Foo &) { std::cout << "Foo(c&)\n"; }
-  Foo &operator=(Foo &&) {
-    std::cout << "=Foo(&&)\n";
+  int x = 0;
+  Foo() { std::cout << "Foo()" << std::endl; }
+
+  Foo(const Foo &f) : x(f.x) { std::cout << "Foo(c&)" << std::endl; }
+
+  Foo(Foo &&f) : x(f.x) { std::cout << "Foo(&&)" << std::endl; }
+
+  Foo &operator=(const Foo &f) {
+    x = f.x;
+    std::cout << "Foo=(c&)" << std::endl;
     return *this;
   }
-  Foo &operator=(const Foo &) {
-    std::cout << "=Foo(c&)\n";
+
+  Foo &operator=(Foo &&f) {
+    x = f.x;
+    std::cout << "Foo=(&&)" << std::endl;
     return *this;
   }
-  void update(sf::Time time, const sf::Vector2f &pos) {
-    // std::cout << "Foo.update(dt, pos)\n";
-  }
-  bool handleEvent(const sf::Event &event, const sf::Vector2f &pos) {
-    // std::cout << "Foo.handleEvent(event, pos)\n";
-    return true;
-  }
+
+  ~Foo() { std::cout << "~Foo()" << std::endl; }
 };
 
-void draw(sf::RenderTarget &rt, const Foo &foo,
-          sf::RenderStates states = sf::RenderStates::Default) {
-  // std::cout << "::draw(target, foo, states)\n";
-}
+struct LoadScene : scdc::Scene {
+  LoadScene(scdc::SceneCompose &compositor, sf::RenderTarget &render_window,
+            mmed::AnimationManager anim_manager,
+            mmed::AnimationManager &load_target, const std::string &file_name)
+      : scdc::Scene(compositor), render_window_(render_window),
+        anim_manager_(std::move(anim_manager)), load_target_(load_target),
+        animation_bar_({anim_manager_.getAnimation("na_l")}, {}) {
+    animation_bar_.select_anim("load");
+    animation_bar_.restart();
 
-struct Menu3 : scdc::Scene {
-  MusicPauseField mpf;
-  sf::RenderWindow &win;
-
-  mmed::CharacterAnimation button_anim = {
-      {
-          mmed::AnimationManager::getAnimation("b1_0"),
-          mmed::AnimationManager::getAnimation("b1_1"),
-          mmed::AnimationManager::getAnimation("b1_2"),
-          mmed::AnimationManager::getAnimation("b1_d"),
-      },
-      {}};
-
-  BoolDrawable<mmed::CharacterAnimation> follow = {
-      {{mmed::Animation::one_frame_anim("start", "images/start.png"),
-        mmed::Animation::one_frame_anim("exit", "images/exit.png")},
-       {}},
-      false};
-
-  gm::ListNode components;
-  bool is_move = false;
-
-  Menu3(scdc::SceneCompose &cmp, sf::RenderWindow &window)
-      : scdc::Scene(cmp), win(window) {
-    auto dd_start = DD(button_anim, sf::RectangleShape{{100, 50}}, follow, "start");
-    auto dd_exit = DD(button_anim, sf::RectangleShape{{100, 50}}, follow, "exit");
-    dd_exit.move(0, 50);
-    auto move_btn = Button([this]{is_move = true;}, [this]{is_move = false;}, button_anim, sf::RectangleShape{{100, 50}});
-    move_btn.move(0, 100);
-    components.cld = {dd_start, dd_exit, move_btn};
+    std::packaged_task<mmed::AnimationManager(const std::string &)>
+        load_am_task{[](const std::string &file_name) {
+          mmed::AnimationManager am_result;
+          am_result.loadFile(file_name);
+          std::this_thread::sleep_for(std::chrono::seconds{2});
+          return am_result;
+        }};
+    loaded_am_future = load_am_task.get_future();
+    std::thread am_loader{std::move(load_am_task), file_name};
+    am_loader.detach();
   }
-  void draw() override {
-    ::draw(win, components);
-    ::draw(win, follow);
-  }
-  sf::Vector2f world_pos() {
-    auto &&pixelPos = sf::Mouse::getPosition(win);
-    return win.mapPixelToCoords(pixelPos);
-  }
+
   bool update(sf::Time dt) override {
-    if (is_move)
-      components.move(0, 0.01);
-    components.update(dt, world_pos());
-    follow.update(dt);
-    follow.t.sp_.setPosition(world_pos());
+    auto status = loaded_am_future.wait_for(std::chrono::milliseconds(0));;
+    if (status == std::future_status::ready) {
+      auto &&tmp = loaded_am_future.get();
+      std::swap(load_target_, tmp);
+      compositor_.pending_pop();
+    }
+    animation_bar_.update(dt);
     return false;
   }
-  bool handleEvent(const sf::Event &event) override {
-    components.handleEvent(event, world_pos());
-    return false;
-  }
+
+  void draw() override { ::draw(render_window_, animation_bar_); }
+
+  bool handleEvent(const sf::Event &event) override { return false; }
+
+private:
+  sf::RenderTarget &render_window_;
+  mmed::AnimationManager anim_manager_, &load_target_;
+  std::future<mmed::AnimationManager> loaded_am_future;
+  mmed::CharacterAnimation animation_bar_;
 };
 
-struct MenuScene : scdc::Scene {
-#if 0
-  BeginLoopMusicField mf{"audio/main_menu_begin.ogg",
-                         "audio/main_menu_loop.ogg"};
-#endif
-  sf::View view;
-  std::vector<mmed::Animation> button_anim = {
-      mmed::AnimationManager::getAnimation("b1_0"),
-      mmed::AnimationManager::getAnimation("b1_1"),
-      mmed::AnimationManager::getAnimation("b1_2"),
-      mmed::AnimationManager::getAnimation("b1_d"),
-  };
+struct Scene1 : scdc::Scene {};
 
-  BoolDrawable<mmed::CharacterAnimation> follow = {
-      {{mmed::Animation::one_frame_anim("start", "images/start.png"),
-        mmed::Animation::one_frame_anim("exit", "images/exit.png")},
-       {}},
-      false};
+struct StartScene : scdc::Scene {
+  sf::RenderTarget &render_window_;
+  mmed::AnimationManager anim_manager_;
 
-  sf::RenderWindow &win_;
-  MusicStackOfQueues &ms_;
-  NMusicField mf{ms_,
-                 {
-                     {"audio/main_menu_begin.ogg", false},
-                     {"audio/main_menu_loop.ogg", true},
-                 }};
-
-  Button btn;
-  DD dd;
-  MenuScene(scdc::SceneCompose &sc, sf::RenderWindow &win,
-            MusicStackOfQueues &ms)
-      : scdc::Scene(sc), win_(win), ms_(ms),
-        btn{[] { std::cout << "Foo" << std::endl; },
-            [this] {
-              cmp_.pending_pop();
-              cmp_.pending_push<Menu3>(win_);
-            },
-            mmed::CharacterAnimation(button_anim, {}),
-            sf::RectangleShape{{100, 50}}},
-        dd(
-            mmed::CharacterAnimation{button_anim, {}},
-            sf::RectangleShape{{100, 50}}, follow, "start",
-            [] { std::cout << "Foo\n"; }, [] { std::cout << "Bar\n"; }) {
-    follow.t.sp_.setScale(.5, .5);
-    view.setViewport({.25, .25, .5, .5});
-    btn.move(120, 100);
-    btn.rotate(-30);
-    btn.scale({2, 2});
+  StartScene(scdc::SceneCompose &compositor, sf::RenderTarget &render_window)
+      : scdc::Scene(compositor), render_window_(render_window) {
+    mmed::AnimationManager tmp_am;
+    tmp_am.loadFile("basic_anims.json");
+    compositor_.pending_push<LoadScene>(
+        std::ref(render_window), std::move(tmp_am), std::ref(anim_manager_),
+        "animations.json");
+    std::cout << "Foo" << std::endl;
   }
 
-  void draw() override {
-    {
-      scdc::tmp_view tv(win_, view);
-      ::draw(win_, btn);
-      ::draw(win_, dd);
-    }
-    ::draw(win_, follow);
-  }
-  sf::Vector2f world_pos() {
-    sf::Vector2i pixelPos = sf::Mouse::getPosition(win_);
-    return win_.mapPixelToCoords(pixelPos);
-  }
+  void draw() override {}
+
   bool update(sf::Time dt) override {
-    {
-      scdc::tmp_view tv(win_, view);
-      btn.update(dt, world_pos());
-      dd.update(dt, world_pos());
-    }
-    follow.update(dt);
-    follow.t.sp_.setPosition(world_pos());
-    return true;
+    anim_manager_.getAnimation("na_l");
+    return false;
   }
-  bool handleEvent(const sf::Event &event) override {
-    scdc::tmp_view tv(win_, view);
-    btn.handleEvent(event, world_pos());
-    dd.handleEvent(event, world_pos());
-    return true;
-  }
+
+  bool handleEvent(const sf::Event &event) override { return false; }
 };
 
 int main() {
-  MusicStackOfQueues ms;
-
-  scdc::SceneCompose sc;
-  auto &&aniM = mmed::AnimationManager::getInstance();
-  aniM.loadFile("animations.json");
-  auto window = sf::RenderWindow{sf::VideoMode(500, 300), "Test Manager",
+  auto window = sf::RenderWindow{sf::VideoMode(200, 300), "Test Manager",
                                  sf::Style::Titlebar | sf::Style::Close};
-  // MusicStack ms;
-  sc.pending_push<MenuScene>(window, ms);
-  sf::Clock clck;
+  sf::Clock clock;
+  scdc::SceneCompose compositor;
+
+  compositor.pending_push<StartScene>(std::ref(window));
+
   while (window.isOpen()) {
-    auto dt = clck.restart();
+    auto dt = clock.restart();
+
     sf::Event event;
     while (window.pollEvent(event)) {
-      sc.handleEvent(event);
+      compositor.handleEvent(event);
       if (event.type == sf::Event::Closed)
         window.close();
     }
-    sc.update(dt);
-    ms.update();
-    if (sc.empty())
+
+    compositor.update(dt);
+    if (compositor.empty())
       window.close();
     window.clear();
-    sc.draw();
+    compositor.draw();
     window.display();
   }
-
   return 0;
 }

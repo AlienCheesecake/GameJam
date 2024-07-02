@@ -18,14 +18,10 @@ sf::IntRect Animation::get_box(uint64_t cur_frame) const {
           frame_size};
 }
 
-AnimationManager &AnimationManager::getInstance() {
-  static AnimationManager am;
-  return am;
-}
 
-void AnimationManager::loadFile(const std::string_view file_name) {
+void AnimationManager::loadFile(const std::string &file_name) {
   nlohmann::json j;
-  auto fin = std::ifstream("animations.json");
+  auto fin = std::ifstream(file_name);
   fin >> j;
   for (auto &&i : j.at("objects")) {
     auto id_name = i.at("id_name").get<std::string>();
@@ -42,8 +38,7 @@ void AnimationManager::loadFile(const std::string_view file_name) {
 }
 
 Animation &AnimationManager::getAnimation(const std::string &id_name) {
-  auto &&am = AnimationManager::getInstance();
-  return am.m_Animations.at(id_name);
+  return m_Animations.at(id_name);
 }
 
 Animator::Animator(const sf::Sprite &sp, const Animation &anim)

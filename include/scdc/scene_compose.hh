@@ -12,8 +12,8 @@ struct SceneCompose;
 struct Scene {
   using ptr = std::unique_ptr<Scene>;
 
-  SceneCompose &cmp_;
-  Scene(SceneCompose &cmp) : cmp_(cmp) {}
+  SceneCompose &compositor_;
+  Scene(SceneCompose &cmp) : compositor_(cmp) {}
 
   virtual void draw() = 0;
   virtual bool update(sf::Time dt) = 0;
@@ -30,13 +30,13 @@ class SceneCompose {
   std::vector<Scene::ptr> scenes_;
 
   template <scene_child T, typename... Args> task_t push_task(Args &&...args) {
-    return [this, args = std::forward_as_tuple(args...)](
+    return [this, args = std::make_tuple(std::forward<Args>(args)...)](
                std::vector<Scene::ptr> &sk) mutable {
       sk.push_back(std::apply(
           [this](auto &&...args) {
-            return create_scene<T>(std::forward<Args>(args)...);
+            return create_scene<T>(args...);
           },
-          args));
+          std::move(args)));
       return 0;
     };
   }

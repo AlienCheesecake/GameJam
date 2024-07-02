@@ -139,7 +139,7 @@ struct Mehehenu : Scene {
       if (event.type == sf::Event::MouseButtonPressed &&
           event.mouseButton.button == sf::Mouse::Left) {
         exit_ca_.select_anim("press");
-        cmp_.pending_pop();
+        compositor_.pending_pop();
       }
     } else {
       start_ca_.select_anim("release");
@@ -203,15 +203,15 @@ struct Menu : Scene {
           event.mouseButton.button == sf::Mouse::Left) {
         bg.setTexture(background2);
         button_start.setTexture(start_final);
-        cmp_.pending_pop();
-        cmp_.pending_push<Mehehenu>(window);
+        compositor_.pending_pop();
+        compositor_.pending_push<Mehehenu>(window);
       }
     } else if (button_exit.getGlobalBounds().contains(mousepos.x, mousepos.y)) {
       button_exit.setTexture(exit_select);
       if (event.type == sf::Event::MouseButtonPressed &&
           event.mouseButton.button == sf::Mouse::Left) {
         button_exit.setTexture(exit_final);
-        cmp_.pending_pop();
+        compositor_.pending_pop();
       }
     } else {
       button_start.setTexture(start);

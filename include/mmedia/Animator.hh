@@ -18,15 +18,10 @@ struct Animation {
 
 class AnimationManager final {
   std::map<std::string, Animation> m_Animations;
-  AnimationManager() = default;
 
 public:
-  AnimationManager(AnimationManager &) = delete;
-  void operator=(const AnimationManager &) = delete;
-
-  static AnimationManager &getInstance();
-  void loadFile(const std::string_view file_name = "media/animations.json");
-  static Animation &getAnimation(const std::string &id_name);
+  void loadFile(const std::string &file_name = "media/animations.json");
+  Animation &getAnimation(const std::string &id_name);
 };
 
 class Animator {
